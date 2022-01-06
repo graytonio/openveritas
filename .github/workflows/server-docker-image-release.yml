@@ -1,0 +1,18 @@
+name: Build Release Server Image
+
+on:
+  release:
+    types: ["published"]
+
+jobs:
+  publish-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Veritas Image
+        uses: VaultVulp/gp-docker-action@1.2.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          image-name: veritas-server
+          build_context: ./server
+          extract-git-tag: true
