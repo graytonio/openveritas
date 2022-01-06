@@ -16,4 +16,4 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           image-name: veritas-server
-          build_context: ./server
+          build-context: ./server
