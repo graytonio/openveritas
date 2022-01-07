@@ -19,4 +19,4 @@ jobs:
         run: docker build -t ghcr.io/graytonio/openveritas/veritas-server:latest -f Dockerfile-server ./
 
       - name: Push Docker Image
-        run: push ghcr.io/graytonio/openveritas/veritas-server:latest
+        run: docker push ghcr.io/graytonio/openveritas/veritas-server:latest
