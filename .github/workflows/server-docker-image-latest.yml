@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   publish-docker-image:
     runs-on: ubuntu-20.04
@@ -13,10 +17,22 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Authenticate with GitHub
-        run: docker login -u publisher -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+        uses: docker/login-action
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Docker Image
-        run: docker build -t ghcr.io/graytonio/openveritas/veritas-server:latest -f Dockerfile-server ./
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Push Docker Image
-        run: docker push ghcr.io/graytonio/openveritas/veritas-server:latest
+      - name: Build and push Docker image
+        uses: docker/build-push-action
+        with:
+          context: .
+          push: true
+          tags: latest
+          labels: ${{ steps.meta.outputs.labels }}
