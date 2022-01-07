@@ -11,9 +11,12 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Build Veritas Image
-        uses: VaultVulp/gp-docker-action@1.2.0
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          image-name: veritas-server
-          build-context: ./server
+
+      - name: Authenticate with GitHub
+        run: docker login -u publisher -p ${{ secrets.GITHUB_TOKEN }} ghcr.io
+
+      - name: Build Docker Image
+        run: docker build -t ghcr.io/graytonio/openveritas/veritas-server:latest ./server
+
+      - name: Push Docker Image
+        run: push ghcr.io/graytonio/openveritas/veritas-server:latest
