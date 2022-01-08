@@ -7,18 +7,22 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 	"text/tabwriter"
 
 	"gopkg.in/ini.v1"
 )
 
+//TODO move all defaults here
 var fs *flag.FlagSet
 var url string = "http://localhost:9295"
 var conf string
 
 func init() {
+	oshome, _ := os.UserHomeDir()
+
 	fs = flag.NewFlagSet("args", flag.ContinueOnError)
-	fs.StringVar(&conf, "config", "~/.config/veritasrc", "Location of config file")
+	fs.StringVar(&conf, "config", path.Join(oshome,".veritasrc"), "Location of config file")
 	err := fs.Parse(os.Args[1:])
 
 	if err != nil {
@@ -30,6 +34,7 @@ func init() {
 }
 
 func loadConfig() {
+	//TODO create default conf file
 	cfg, err := ini.Load(conf)
 	if err != nil {
 		fmt.Printf("Failed to read configuration %s", err.Error())
