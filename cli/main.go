@@ -124,8 +124,31 @@ func veritasSet(args []string) error {
 func veritasGet(args []string) error {
 	if len(args) == 0 {
 		//TODO get list of nodes
-		return errors.New("node_name is required")
+
+		resp, err := http.Get(fmt.Sprintf("%s/node", url))
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		var data []NodeReturn
+		err = parseBody(resp, &data)
+		if err != nil {
+			return err
+		}
+
+		if len(data) == 0 {
+			fmt.Printf("There are no nodes in veritas")
+		}
+
+		w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+		for i, s := range data {
+			fmt.Fprintf(w, "[%d] %s\n", i, s.NodeName)
+		}
+		w.Flush()
+		return nil
 	}
+
 	node_name := args[0]
 
 	// node_name and prop_name
