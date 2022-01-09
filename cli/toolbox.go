@@ -18,6 +18,12 @@ type PropertyReturn struct {
 	PropertyValue interface{} `json:"property_value"`
 }
 
+type NodeReturn struct {
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+	NodeName string `json:"name"`
+}
+
 func propertyToString(prop PropertyReturn) string {
 	return fmt.Sprintf("%s:%s\t%v\n", prop.NodeName, prop.PropertyName, prop.PropertyValue)
 }
