@@ -23,6 +23,8 @@ func StartServer() {
 func InitServer(port int) *http.Server {
 	r := mux.NewRouter()
 
+	r.HandleFunc("/prop/{prop}", routes.PropertyQueryHandler).Methods("GET")
+
 	r.HandleFunc("/node", routes.NodeHandler).Methods("GET", "POST")
 	r.HandleFunc("/node/{node}", routes.NodeHandler).Methods("GET", "PUT", "DELETE")
 

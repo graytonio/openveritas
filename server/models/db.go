@@ -17,5 +17,6 @@ func InitDB(mongo_db string, mongo_uri string) {
 
 func initIndexes() {
 	CreateIndex(*mgm.Coll(&Node{}), "name", true)
+	CreateIndex(*mgm.Coll(&Property{}), "property_name", false)
 	CreatePairIndex(*mgm.Coll(&Property{}), "node_name", "property_name", true)
 }
