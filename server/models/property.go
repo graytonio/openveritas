@@ -34,9 +34,20 @@ func NewProperty(node *Node, property_name string, property_value interface{}) *
 	}
 }
 
-func GetAllProperties(node *Node) *[]Property {
+func GetAllPropertiesOfNode(node *Node) *[]Property {
 	properties := []Property{}
 	err := mgm.Coll(&Property{}).SimpleFind(&properties, bson.M{"node_id": node.ID})
+	if err != nil {
+		log.Println(err.Error())
+		return nil
+	}
+
+	return &properties
+}
+
+func GetAllProperties(prop_name string) *[]Property {
+	properties := []Property{}
+	err := mgm.Coll(&Property{}).SimpleFind(&properties, bson.M{"property_name": prop_name})
 	if err != nil {
 		log.Println(err.Error())
 		return nil

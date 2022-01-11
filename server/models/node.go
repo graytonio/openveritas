@@ -70,7 +70,7 @@ func DeleteNode(node *Node) error {
 
 //Update hook for updating related properties
 func (model *Node) Updating(ctx context.Context) error {
-	properties := GetAllProperties(model)
+	properties := GetAllPropertiesOfNode(model)
 
 	success := true
 
