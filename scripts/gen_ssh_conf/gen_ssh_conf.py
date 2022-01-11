@@ -11,29 +11,21 @@ def parse_arguments():
     parser.add_argument('--list', action="store_true", help="Output config to stdout")
     return parser.parse_args()
 
-def fetch_veritas_hosts(host):
-    response = requests.get(urljoin(host, "/node"))
-    nodes = response.json()
-    names = map(lambda node: node["name"], nodes)
-    return list(names)
-
-def fetch_node_ip(host, node):
-    request_path = "/node/" + node + "/prop/ip_address_0"
-    response = requests.get(urljoin(host, request_path))
-    data = response.json()
-    ip_address = data["property_value"]
-    return ip_address
-
 def fetch_config(path):
     config = configparser.ConfigParser()
     config.read(path)
     return config
 
-def generate_ssh_config_file(nodes, ips, user):
+def fetch_nodes(host):
+    response = requests.get(urljoin(host, "/prop/ip_address_0"))
+    nodes = response.json()
+    return nodes
+
+def generate_ssh_config_file(nodes, user):
     content = ""
     for i in range(len(nodes)):
-        content += "Host " + nodes[i] + "\n"
-        content += "\tHostName " + ips[i] + "\n"
+        content += "Host " + nodes[i]["node_name"] + "\n"
+        content += "\tHostName " + nodes[i]["property_value"] + "\n"
         content += "\tUser " + user + "\n\n"
     return content
 
@@ -50,9 +42,8 @@ def main():
 
     config = fetch_config(Path.home().joinpath(".veritasrc"))
     host = config["server"]["host"]
-    nodes = fetch_veritas_hosts(host)
-    ips = list(map(lambda node: fetch_node_ip(host, node), nodes))
-    content = generate_ssh_config_file(nodes, ips, "ansible")
+    nodes = fetch_nodes(host)
+    content = generate_ssh_config_file(nodes, "ansible")
 
     if not args.confirm or args.list:
         print(content)
