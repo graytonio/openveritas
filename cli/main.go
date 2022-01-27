@@ -1,212 +1,88 @@
 package main
 
 import (
-	"bytes"
-	"errors"
-	"flag"
 	"fmt"
-	"net/http"
+	"io/ioutil"
+	"log"
 	"os"
-	"path"
-	"text/tabwriter"
 
-	"gopkg.in/ini.v1"
+	"github.com/alecthomas/kong"
 )
 
-//TODO move all defaults here
-var fs *flag.FlagSet
-var url string = "http://localhost:9295"
-var conf string
+var host string = "https://veritas.conheart.com"
 
-func init() {
-	oshome, _ := os.UserHomeDir()
-
-	fs = flag.NewFlagSet("args", flag.ContinueOnError)
-	fs.StringVar(&conf, "config", path.Join(oshome,".veritasrc"), "Location of config file")
-	err := fs.Parse(os.Args[1:])
-
-	if err != nil {
-		fmt.Printf("Error parsing arguments %v", err.Error())
-		os.Exit(1)
-	}
-
-	loadConfig()
+func propToString(prop *Property) string {
+	return fmt.Sprintf("%s:%s=%v", prop.NodeName, prop.PropertyName, prop.PropertyValue)
 }
 
-func loadConfig() {
-	//TODO create default conf file
-	cfg, err := ini.Load(conf)
-	if err != nil {
-		fmt.Printf("Failed to read configuration %s", err.Error())
-		os.Exit(1)
-	}
+// Get A Property of a Node
+func (r *GetPropertyCMD) Run(ctx *Context) error {
+	prop, err := getNodeProperty(ctx.Logger, host, r.NodeName, r.PropertyName)
+	if err != nil { return err }
+	fmt.Println(propToString(prop))
+	return nil
+}
 
-	url = cfg.Section("server").Key("host").String()
+// TODO Set Property
+func (r *SetPropertyCMD) Run(ctx *Context) error {
+	err := setNodeProperty(ctx.Logger, host, r.NodeName, r.PropertyName, r.Value)
+	if err != nil { return err }
+	fmt.Printf("%s set to %v on node %s", r.PropertyName, r.Value, r.NodeName)
+	return nil
+}
+
+// Get All Properties of a Node
+func (r *GetNodeCMD) Run(ctx *Context) error {
+	if r.NodeName != "" {
+		props, err := getAllNodeProperties(ctx.Logger, host, r.NodeName)
+		if err != nil { return err }
+		for _, p := range *props {
+			fmt.Println(propToString(&p))
+		}	
+	} else {
+		nodes, err := getAllNodes(ctx.Logger, host)
+		if err != nil { return err }
+		for _, n := range *nodes {
+			fmt.Println(n.NodeName)
+		}
+	}
+	return nil
+}
+
+// Update Node Name
+func (r *SetNodeCMD) Run(ctx *Context) error {
+	err := updateNodeName(ctx.Logger, host, r.NodeName, r.NewName)
+	if err != nil { return err }
+	fmt.Printf("Updated node %s to %s\n", r.NodeName, r.NewName)
+	return nil
+}
+
+// TODO Create Node
+func (r *NewNodeCMD) Run(ctx *Context) error {
+	fmt.Println(r)
+	return nil
+}
+
+func (d debugFlag) BeforeApply(logger *log.Logger) error {
+	logger.SetOutput(os.Stdout)
+	return nil
+}
+
+var cli struct {
+	Config string `help:"Path to config file"`
+	Debug debugFlag `help:"Enable debug mode"`
+
+	GetProperty GetPropertyCMD `cmd:"" help:"Get the value of a property on a node"`
+	SetProperty SetPropertyCMD `cmd:"" help:"Set the value of a property on a node"`
+	
+	GetNode GetNodeCMD `cmd:"" help:"Get all properties of a node"`
+	SetNode SetNodeCMD `cmd:"" help:"Rename Node"`
+	NewNode NewNodeCMD `cmd:"" help:"Create new Node"`
 }
 
 func main() {
-	args := fs.Args()
-
-	if len(args) == 0 {
-		printHelp("")
-		os.Exit(1)
-	}
-
-	command := args[0]
-	var err error
-	switch command {
-	case "get":
-		err = veritasGet(args[1:])
-	case "set":
-		err = veritasSet(args[1:])
-	case "new":
-		err = veritasNew(args[1:])
-	}
-
-	if err != nil {
-		fmt.Println(err.Error() + "\n")
-		printHelp(command)
-		os.Exit(1)
-	}
-}
-
-func veritasNew(args []string) error {
-	if len(args) == 0 {
-		return errors.New("node_name is required")
-	}
-	node_name := args[0]
-
-	var jsonData = []byte(fmt.Sprintf(`{ "name": "%s" }`, node_name))
-	resp, err := http.Post(fmt.Sprintf("%s/node", url), "application/json", bytes.NewBuffer((jsonData)))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	
-	if resp.StatusCode == http.StatusCreated {
-		fmt.Printf("Created new node %s\n", node_name)
-		return nil
-	} else if resp.StatusCode == http.StatusConflict {
-		fmt.Printf("Node %s already exists\n", node_name)
-		return nil
-	}
-
-	return errors.New("Error occured while creating node " + node_name)
-}
-
-func veritasSet(args []string) error {
-	if len(args) == 0 {
-		return errors.New("node_name is required")
-	} else if len(args) == 1 {
-		return errors.New("prop_name is required")
-	} else if len(args) == 2 {
-		return errors.New("prop_value is required")
-	}
-
-	node_name := args[0]
-	prop_name := args[1]
-	prop_value := parseStringToJSONString(args[2])
-	var jsonData = []byte(fmt.Sprintf(`{ "property_name": "%s", "property_value": %v }`, prop_name, prop_value))
-	resp, err := http.Post(fmt.Sprintf("%s/node/%s/prop", url, node_name), "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusCreated {
-		fmt.Printf("Created property %s on node %s\n", prop_name, node_name)
-		return nil
-	}
-
-	return errors.New("Error occured while creating property " + prop_name + " for node " + node_name)
-}
-
-func veritasGet(args []string) error {
-	if len(args) == 0 {
-		//TODO get list of nodes
-
-		resp, err := http.Get(fmt.Sprintf("%s/node", url))
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-
-		var data []NodeReturn
-		err = parseBody(resp, &data)
-		if err != nil {
-			return err
-		}
-
-		if len(data) == 0 {
-			fmt.Printf("There are no nodes in veritas")
-		}
-
-		w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
-		for i, s := range data {
-			fmt.Fprintf(w, "[%d] %s\n", i, s.NodeName)
-		}
-		w.Flush()
-		return nil
-	}
-
-	node_name := args[0]
-
-	// node_name and prop_name
-	if len(args) == 2 {
-		prop_name := args[1]
-
-		//Request
-		resp, err := http.Get(fmt.Sprintf("%s/node/%s/prop/%s", url, node_name, prop_name))
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-
-		//Check status code
-		if resp.StatusCode == http.StatusNotFound {
-			fmt.Printf("Property %s not found for node %s\n", prop_name, node_name)
-			return nil
-		}
-
-		//Parse Body
-		var data PropertyReturn
-		err = parseBody(resp, &data)
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("[0] %s", propertyToString(data))
-	} else {
-		//Request
-		resp, err := http.Get(fmt.Sprintf("%s/node/%s/prop", url, node_name))
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-
-		//Check status code
-		if resp.StatusCode == http.StatusNotFound {
-			fmt.Printf("Node %s not found", node_name)
-			return nil
-		}
-
-		//Parse Body
-		var data []PropertyReturn
-		err = parseBody(resp, &data)
-		if err != nil {
-			return err
-		}
-
-		if len(data) == 0 {
-			fmt.Printf("Node %s has no properties\n", node_name)
-		}
-
-		w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
-		for i, s := range data {
-			fmt.Fprintf(w, "[%d] %s", i, propertyToString(s))
-		}
-		w.Flush()
-	}
-
-	return nil
+	logger := log.New(ioutil.Discard, "", log.LstdFlags)
+	ctx := kong.Parse(&cli, kong.UsageOnError(), kong.Bind(logger))
+	err := ctx.Run(&Context{ Config: cli.Config, Logger: logger })
+	ctx.FatalIfErrorf(err)
 }
