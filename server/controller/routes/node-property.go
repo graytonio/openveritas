@@ -102,7 +102,7 @@ func nodePropertyDeleteHandler(rw http.ResponseWriter, r *http.Request) {
 
 	property, err := models.GetProperty(node, prop_name)
 	if checkRouteError(err, rw) { return }
-	if checkNotFound(err, rw) { return }
+	if checkNotFound(property, rw) { return }
 
 	err = models.DeleteProperty(property)
 	if checkRouteError(err, rw) { return }

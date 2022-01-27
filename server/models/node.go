@@ -77,6 +77,8 @@ func DeleteNode(node *Node) error {
 	return nil
 }
 
+//TODO Delete Hook to remove floating properties
+
 //Update hook for updating related properties
 func (model *Node) Updating(ctx context.Context) error {
 	properties := GetAllPropertiesOfNode(model)

@@ -27,6 +27,11 @@ type SetPropertyCMD struct {
 	Value string `arg:"" help:"Value to set property to"`
 }
 
+type DeletePropertyCMD struct {
+	NodeName string `arg:"" help:"Name of node"`
+	PropertyName string `arg:"" help:"Name of property to delete"`
+}
+
 type GetNodeCMD struct {
 	NodeName string `arg:"" optional:"" help:"Name of node to query"`
 }
@@ -34,6 +39,10 @@ type GetNodeCMD struct {
 type SetNodeCMD struct {
 	NodeName string `arg:"" help:"Name of node to update"`
 	NewName string `arg:"" help:"New name for node"`
+}
+
+type DeleteNodeCMD struct {
+	NodeName string `arg:"" help:"Name of node to delete"`
 }
 
 type NewNodeCMD struct {

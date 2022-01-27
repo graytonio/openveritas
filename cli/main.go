@@ -9,7 +9,7 @@ import (
 	"github.com/alecthomas/kong"
 )
 
-var host string = "https://veritas.conheart.com"
+var host string = "http://localhost:9295"
 
 func propToString(prop *Property) string {
 	return fmt.Sprintf("%s:%s=%v", prop.NodeName, prop.PropertyName, prop.PropertyValue)
@@ -23,11 +23,19 @@ func (r *GetPropertyCMD) Run(ctx *Context) error {
 	return nil
 }
 
-// TODO Set Property
+// Set Property
 func (r *SetPropertyCMD) Run(ctx *Context) error {
 	err := setNodeProperty(ctx.Logger, host, r.NodeName, r.PropertyName, r.Value)
 	if err != nil { return err }
-	fmt.Printf("%s set to %v on node %s", r.PropertyName, r.Value, r.NodeName)
+	fmt.Printf("%s set to %v on node %s\n", r.PropertyName, r.Value, r.NodeName)
+	return nil
+}
+
+// TODO Delete Property
+func (r *DeletePropertyCMD) Run(ctx *Context) error {
+	err := deleteProperty(ctx.Logger, host, r.NodeName, r.PropertyName)
+	if err != nil { return err }
+	fmt.Printf("Deleted node %s\n", r.NodeName)
 	return nil
 }
 
@@ -57,9 +65,19 @@ func (r *SetNodeCMD) Run(ctx *Context) error {
 	return nil
 }
 
-// TODO Create Node
+// Delete Node
+func (r *DeleteNodeCMD) Run(ctx *Context) error {
+	err := deleteNode(ctx.Logger, host, r.NodeName)
+	if err != nil { return err }
+	fmt.Printf("Deleted node %s\n", r.NodeName)
+	return nil
+}
+
+// Create Node
 func (r *NewNodeCMD) Run(ctx *Context) error {
-	fmt.Println(r)
+	err := createNode(ctx.Logger, host, r.NodeName)
+	if err != nil { return err }
+	fmt.Printf("Created node %s\n", r.NodeName)
 	return nil
 }
 
@@ -74,9 +92,11 @@ var cli struct {
 
 	GetProperty GetPropertyCMD `cmd:"" help:"Get the value of a property on a node"`
 	SetProperty SetPropertyCMD `cmd:"" help:"Set the value of a property on a node"`
+	DeleteProperty DeletePropertyCMD `cmd:"" help:"Delete a property on a node"`
 	
 	GetNode GetNodeCMD `cmd:"" help:"Get all properties of a node"`
 	SetNode SetNodeCMD `cmd:"" help:"Rename Node"`
+	DeleteNode DeleteNodeCMD `cmd:"" help:"Delete Node"`
 	NewNode NewNodeCMD `cmd:"" help:"Create new Node"`
 }
 

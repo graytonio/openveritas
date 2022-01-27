@@ -50,9 +50,9 @@ func parseStringToJSONString(str string) string {
 func getNodeProperty(logger *log.Logger, string, node_name string, property_name string)(*Property, error) {
 	path := appendToHostString(host, "/node/", node_name, "/prop/", property_name)
 	logger.Printf("GET Request: %s", path)
-	resp, err := http.Get(path)
-	logger.Println(resp.StatusCode)
 	
+	resp, err := http.Get(path)
+	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil { 
 		logger.Println(err)
 		return nil, err 
@@ -74,18 +74,20 @@ func getNodeProperty(logger *log.Logger, string, node_name string, property_name
 
 func setNodeProperty(logger *log.Logger, host string, node_name string, property_name string, property_value string) error {
 	path := appendToHostString(host, "/node/", node_name, "/prop/", property_name)
-	logger.Printf("POST Request: %s", path)
+	logger.Printf("PUT Request: %s", path)
 	formated_prop_value := parseStringToJSONString(property_value)
 	jsonData := []byte(fmt.Sprintf(`{ "property_value": %v }`, formated_prop_value))
 	logger.Printf("Payload: %s", string(jsonData))
+	
 	req, err := http.NewRequest(http.MethodPut, path, bytes.NewBuffer(jsonData))
 	if err != nil { 
 		logger.Println(err.Error())
 		return err 
 	}
 	req.Header.Set("Content-Type", "application/json")
+	
 	resp, err := http.DefaultClient.Do(req)
-	logger.Println(resp.StatusCode)
+	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil {
 		logger.Println(err.Error())
 		return err
@@ -99,11 +101,36 @@ func setNodeProperty(logger *log.Logger, host string, node_name string, property
 	return fmt.Errorf("error creating property %s for node %s", property_name, node_name)
 }
 
+func deleteProperty(logger *log.Logger, host string, node_name string, property_name string) error {
+	path := appendToHostString(host, "/node/", node_name, "/prop/", property_name)
+	logger.Printf("DELETE Request: %s", path)
+
+	req, err := http.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		logger.Println(err.Error())
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	logger.Println(resp.StatusCode, resp.Status)
+	if err != nil {
+		logger.Println(err.Error())
+		return err
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	return fmt.Errorf("error deleting %s", node_name)
+}
+
 func getAllNodeProperties(logger *log.Logger, host string, node_name string) (*[]Property, error) {
 	path := appendToHostString(host, "/node/", node_name, "/prop")
 	logger.Printf("GET Request: %s", path)
+	
 	resp, err := http.Get(path)
-	logger.Println(resp.StatusCode)
+	logger.Println(resp.StatusCode, resp.Status)
 
 	if err != nil { 
 		logger.Println(err.Error())
@@ -132,8 +159,9 @@ func getAllPropertyNodes(host string, prop_name string) (*[]Property, error) {
 func getAllNodes(logger *log.Logger, host string) (*[]Node, error) {
 	path := appendToHostString(host, "/node")
 	logger.Printf("GET Request: %s", path)
+	
 	resp, err := http.Get(path)
-	logger.Println(resp.StatusCode)
+	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil { 
 		logger.Println(err.Error())
 		return nil, err 
@@ -159,6 +187,7 @@ func updateNodeName(logger *log.Logger, host string, node_name string, new_name 
 	logger.Printf("PUT Request: %s", path)
 	jsonData :=  []byte(fmt.Sprintf(`{ "name": "%s" }`, new_name))
 	logger.Printf("Payload: %s", string(jsonData))
+	
 	req, err := http.NewRequest(http.MethodPut, path, bytes.NewBuffer(jsonData))
 	if err != nil { 
 		logger.Println(err)
@@ -167,7 +196,7 @@ func updateNodeName(logger *log.Logger, host string, node_name string, new_name 
 
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
-	logger.Println(resp.StatusCode)
+	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil { 
 		logger.Println(err)
 		return err 
@@ -180,11 +209,40 @@ func updateNodeName(logger *log.Logger, host string, node_name string, new_name 
 	return fmt.Errorf("error updating node %s", node_name)
 }
 
-func createNode(host string, node_name string) error {
+func deleteNode(logger *log.Logger, host string, node_name string) error {
+	path := appendToHostString(host, "/node/", node_name)
+	logger.Printf("DELETE Request: %s", path)
+	req, err := http.NewRequest(http.MethodDelete, path, nil)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	logger.Println(resp.StatusCode, resp.Status)
+	if err != nil {
+		logger.Println(err)
+		return err
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		return nil
+	}
+
+	return fmt.Errorf("error deleting node %s", node_name)
+}
+
+func createNode(logger *log.Logger, host string, node_name string) error {
 	path := appendToHostString(host, "/node")
-	jsonData := []byte(fmt.Sprintf(`{ name: "%s" }`, node_name))
+	logger.Printf("POST Request: %s", path)
+	jsonData := []byte(fmt.Sprintf(`{ "name": "%s" }`, node_name))
+	logger.Printf("Payload: %s", string(jsonData))
 	resp, err := http.Post(path, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil { return err }
+	logger.Println(resp.StatusCode, resp.Status)
+	if err != nil { 
+		logger.Println(err.Error())
+		return err 
+	}
 
 	if resp.StatusCode == http.StatusCreated {
 		return nil
