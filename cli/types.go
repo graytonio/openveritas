@@ -17,13 +17,13 @@ type Node struct {
 }
 
 type GetPropertyCMD struct {
-	NodeName string `arg:"" help:"Name of node to query"`
 	PropertyName string `arg:"" help:"Name of property to lookup"`
+	NodeName string `arg:"" optional:"" help:"Name of node to query"`
 }
 
 type SetPropertyCMD struct {
-	NodeName string `arg:"" help:"Name of node to query"`
 	PropertyName string `arg:"" help:"Name of property to set"`
+	NodeName string `arg:"" help:"Name of node to query"`
 	Value string `arg:"" help:"Value to set property to"`
 }
 

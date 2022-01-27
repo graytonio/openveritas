@@ -3,8 +3,6 @@ name: Build Latest Server Image
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 env:
   REGISTRY: ghcr.io
@@ -44,5 +42,5 @@ jobs:
           context: .
           push: true
           file: Dockerfile-server
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/server:latest
           labels: ${{ steps.meta.outputs.labels }}
