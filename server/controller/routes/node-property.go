@@ -29,11 +29,9 @@ func nodePropertyGetHandler(rw http.ResponseWriter, r *http.Request) {
 	node_name := vars["node"]
 	prop_name := vars["prop"]
 
-	node := models.GetNode(node_name)
-	if node == nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
+	node, err := models.GetNode(node_name)
+	if checkRouteError(err, rw) { return }
+	if checkNotFound(node, rw) { return }
 
 	if prop_name == "" {
 		properties := models.GetAllPropertiesOfNode(node)
@@ -41,11 +39,9 @@ func nodePropertyGetHandler(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Add("Content-Type", "application/json")
 		fmt.Fprintf(rw, "%s", string(respoonse))
 	} else {
-		property := models.GetProperty(node, prop_name)
-		if property == nil {
-			rw.WriteHeader(http.StatusNotFound)
-			return 
-		}
+		property, err := models.GetProperty(node, prop_name)
+		if checkRouteError(err, rw) { return }
+		if checkNotFound(property, rw) { return }
 
 		response, _ := json.Marshal(property)
 		rw.Header().Add("Content-Type", "application/json")
@@ -57,16 +53,11 @@ func nodePropertyPostHandler(rw http.ResponseWriter, r *http.Request) {
 	node_name := mux.Vars(r)["node"]
 	var body models.NewPropertyForm
 	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
+	if checkRouteError(err, rw) { return }
 
-	err = models.CreateProperty(node_name, body.PropertyName, body.PropertyValue)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusAccepted)
-		return
-	}
+	property, err := models.CreateProperty(node_name, body.PropertyName, body.PropertyValue)
+	if checkRouteError(err, rw) { return }
+	if checkNotFound(property, rw) { return }
 
 	rw.WriteHeader(http.StatusCreated)
 }
@@ -76,32 +67,25 @@ func nodePropertyPutHandler(rw http.ResponseWriter, r *http.Request) {
 	node_name := vars["node"]
 	prop_name := vars["prop"]
 
-	node := models.GetNode(node_name)
-	if node == nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	property := models.GetProperty(node, prop_name)
-	if property == nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
+	node, err := models.GetNode(node_name)
+	if checkRouteError(err, rw) { return }
+	if checkNotFound(node, rw) { return }
 
 	var body models.UpdatePropertyForm
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
+	err = json.NewDecoder(r.Body).Decode(&body)
+	if checkRouteError(err, rw) { return }
 
-	property.PropertyValue = body.PropertyValue
-	
-	err = models.UpdateProperty(property)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+	property, err := models.GetProperty(node, prop_name)
+	if checkRouteError(err, rw) { return }
+	if checkNotFound(property, rw) {
+		property, err = models.CreateProperty(node.Name, prop_name, body.PropertyValue)
+		if checkRouteError(err, rw) { return }
+	} else {
+		property.PropertyValue = body.PropertyValue
 	}
+	
+	_, err = models.UpdateProperty(property)
+	if checkRouteError(err, rw) { return }
 
 	rw.WriteHeader(http.StatusOK)
 }
@@ -112,23 +96,16 @@ func nodePropertyDeleteHandler(rw http.ResponseWriter, r *http.Request) {
 	node_name := vars["node"]
 	prop_name := vars["prop"]
 	
-	node := models.GetNode(node_name)
-	if node == nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
+	node, err := models.GetNode(node_name)
+	if checkRouteError(err, rw) { return }
+	if checkNotFound(node, rw) { return }
 
-	property := models.GetProperty(node, prop_name)
-	if property == nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
+	property, err := models.GetProperty(node, prop_name)
+	if checkRouteError(err, rw) { return }
+	if checkNotFound(err, rw) { return }
 
-	err := models.DeleteProperty(property)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	err = models.DeleteProperty(property)
+	if checkRouteError(err, rw) { return }
 	
 	rw.WriteHeader(http.StatusOK)
 }

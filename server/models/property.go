@@ -45,45 +45,49 @@ func GetAllPropertiesOfNode(node *Node) *[]Property {
 	return &properties
 }
 
-func GetAllProperties(prop_name string) *[]Property {
+func GetAllProperties(prop_name string) (*[]Property, error) {
 	properties := []Property{}
 	err := mgm.Coll(&Property{}).SimpleFind(&properties, bson.M{"property_name": prop_name})
 	if err != nil {
 		log.Println(err.Error())
-		return nil
+		return nil, err
 	}
 
-	return &properties
+	return &properties, nil
 }
 
-func GetProperty(node *Node, property_name string) *Property {
+func GetProperty(node *Node, property_name string) (*Property, error) {
 	property := &Property{}
 	err := mgm.Coll(property).First(bson.M{"property_name": property_name, "node_id": node.ID}, property)
 	if err != nil {
 		log.Println(err.Error())
-		return nil
+		return nil, err
 	}
-	return property
+	return property, nil
 }
 
-func CreateProperty(node_name string, property_name string, property_value interface{}) error {
-	node := GetNode(node_name)
-	property := NewProperty(node, property_name, property_value)
-	err := mgm.Coll(property).Create(property)
+func CreateProperty(node_name string, property_name string, property_value interface{}) (*Property, error) {
+	node, err := GetNode(node_name)
 	if err != nil {
 		log.Println(err.Error())
-		return err
+		return nil, err
 	}
-	return nil
+	property := NewProperty(node, property_name, property_value)
+	err = mgm.Coll(property).Create(property)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	return property, nil
 }
 
-func UpdateProperty(newProperty *Property) error {
+func UpdateProperty(newProperty *Property) (*Property, error) {
 	err := mgm.Coll(newProperty).Update(newProperty)
 	if err != nil {
 		log.Println(err.Error())
-		return err
+		return nil, err
 	}	
-	return nil
+	return newProperty, nil
 }
 
 func DeleteProperty(property *Property) error {

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/graytonio/openveritas/server/models"
@@ -32,15 +31,15 @@ func NodeHandler(rw http.ResponseWriter, r *http.Request) {
 func nodeGetHandler(rw http.ResponseWriter, r *http.Request) {
 	node_name := mux.Vars(r)["node"]
 	if node_name == "" {
-		response, _ := json.Marshal(models.GetAllNodes())
+		nodes, err := models.GetAllNodes()
+		if checkRouteError(err, rw) { return }
+		response, _ := json.Marshal(nodes)
 		rw.Header().Add("Content-Type", "application/json")
 		fmt.Fprintf(rw, "%s", string(response))
 	} else {
-		node := models.GetNode(node_name)
-		if node == nil {
-			rw.WriteHeader(http.StatusNotFound)
-			return
-		}
+		node, err := models.GetNode(node_name)
+		if checkRouteError(err, rw) { return }
+		if checkNotFound(node, rw) { return }
 
 		respoonse, _ := json.Marshal(node)
 		rw.Header().Add("Content-Type", "application/json")
@@ -51,63 +50,39 @@ func nodeGetHandler(rw http.ResponseWriter, r *http.Request) {
 func nodePostHandler(rw http.ResponseWriter, r *http.Request) {
 	var body models.NewNodeForm
 	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
+	if checkRouteError(err, rw) { return }
 
-	err = models.CreateNode(body.Name)
-	if err != nil {
-		if strings.Contains(err.Error(), "duplicate key error collection: veritas.nodes index: name_1") {
-			rw.WriteHeader(http.StatusConflict)
-			return
-		}
-		
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	_, err = models.CreateNode(body.Name)
+	if checkRouteError(err, rw) { return }
 	
 	rw.WriteHeader(http.StatusCreated)
 }
 
 func nodePutHandler(rw http.ResponseWriter, r *http.Request) {
 	node_name := mux.Vars(r)["node"]
-	node := models.GetNode(node_name)
-	if node == nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
+	node, err := models.GetNode(node_name)
+	if checkRouteError(err, rw) { return }
+	if checkNotFound(node, rw) { return }
 	
 	var body models.NewNodeForm
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
-		return
-	}
+	err = json.NewDecoder(r.Body).Decode(&body)
+	if checkRouteError(err, rw) { return }
 
 	if body.Name != "" { node.Name = body.Name }
 
-	err = models.UpdateNode(node)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	_, err = models.UpdateNode(node)
+	if checkRouteError(err, rw) { return }
 	rw.WriteHeader(http.StatusOK)
 }
 
 func nodeDeleteHandler(rw http.ResponseWriter, r *http.Request) {
 	node_name := mux.Vars(r)["node"]
-	node := models.GetNode(node_name)
-	if node == nil {
-		rw.WriteHeader(http.StatusNotFound)
-		return
-	}
+	node, err := models.GetNode(node_name)
+	if checkRouteError(err, rw) { return }
+	if checkNotFound(node, rw) { return }
 
-	err := models.DeleteNode(node)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	err = models.DeleteNode(node)
+	if checkRouteError(err, rw) { return }
 
 	rw.WriteHeader(http.StatusOK)
 }
