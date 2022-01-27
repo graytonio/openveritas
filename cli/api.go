@@ -151,9 +151,31 @@ func getAllNodeProperties(logger *log.Logger, host string, node_name string) (*[
 	return &data, nil
 }
 
-// TODO Get all nodes with property
-func getAllPropertyNodes(host string, prop_name string) (*[]Property, error) {
-	return nil, nil
+// Get all nodes with property
+func getAllPropertyNodes(logger *log.Logger, host string, prop_name string) (*[]Property, error) {
+	path := appendToHostString(host, "/prop/", prop_name)
+	logger.Printf("GET Request: %s", path)
+
+	resp, err := http.Get(path)
+	if err != nil {
+		logger.Println(err.Error())
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var data []Property
+	err = parseJSONBody(resp, &data)
+	if err != nil {
+		logger.Println(err.Error())
+		return nil, err
+	}
+
+	if len(data) == 0 {
+		logger.Printf("no nodes have property %s", data)
+		return nil, fmt.Errorf("no nodes have property %s", data)
+	}
+	
+	return &data, nil
 }
 
 func getAllNodes(logger *log.Logger, host string) (*[]Node, error) {
@@ -176,6 +198,7 @@ func getAllNodes(logger *log.Logger, host string) (*[]Node, error) {
 	}
 
 	if len(data) == 0 {
+		logger.Println("no nodes found")
 		return nil, fmt.Errorf("no nodes found")
 	}
 

@@ -9,17 +9,25 @@ import (
 	"github.com/alecthomas/kong"
 )
 
-var host string = "http://localhost:9295"
+var host string = "https://veritas.conheart.com"
 
 func propToString(prop *Property) string {
 	return fmt.Sprintf("%s:%s=%v", prop.NodeName, prop.PropertyName, prop.PropertyValue)
 }
 
-// Get A Property of a Node
+// Get A Property of a Node or all Nodes with property
 func (r *GetPropertyCMD) Run(ctx *Context) error {
-	prop, err := getNodeProperty(ctx.Logger, host, r.NodeName, r.PropertyName)
-	if err != nil { return err }
-	fmt.Println(propToString(prop))
+	if r.NodeName != "" {
+		prop, err := getNodeProperty(ctx.Logger, host, r.NodeName, r.PropertyName)
+		if err != nil { return err }
+		fmt.Println(propToString(prop))
+	} else {
+		props, err := getAllPropertyNodes(ctx.Logger, host, r.PropertyName)
+		if err != nil { return err }
+		for _, p := range *props {
+			fmt.Println(propToString(&p))
+		}
+	}
 	return nil
 }
 
@@ -31,7 +39,7 @@ func (r *SetPropertyCMD) Run(ctx *Context) error {
 	return nil
 }
 
-// TODO Delete Property
+// Delete Property
 func (r *DeletePropertyCMD) Run(ctx *Context) error {
 	err := deleteProperty(ctx.Logger, host, r.NodeName, r.PropertyName)
 	if err != nil { return err }
