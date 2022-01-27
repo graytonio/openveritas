@@ -20,6 +20,13 @@ func StartServer() {
 	}
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        log.Printf("%s: %s", r.Method, r.RequestURI)
+        next.ServeHTTP(w, r)
+    })
+}
+
 func InitServer(port int) *http.Server {
 	r := mux.NewRouter()
 
@@ -30,6 +37,8 @@ func InitServer(port int) *http.Server {
 
 	r.HandleFunc("/node/{node}/prop", routes.PropertyHandler).Methods("GET", "POST")
 	r.HandleFunc("/node/{node}/prop/{prop}", routes.PropertyHandler).Methods("GET", "PUT", "DELETE")
+
+	r.Use(loggingMiddleware)
 
 	srv = &http.Server{
 		Addr: "0.0.0.0:" + fmt.Sprint(port),

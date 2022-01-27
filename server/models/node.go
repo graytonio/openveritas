@@ -25,6 +25,7 @@ func NewNode(name string) *Node {
 }
 
 func GetAllNodes() (*[]Node, error) {
+	log.Println("Fetching All Nodes")
 	result := []Node{}
 	err := mgm.Coll(&Node{}).SimpleFind(&result, bson.M{})
 	if err != nil {
@@ -35,6 +36,7 @@ func GetAllNodes() (*[]Node, error) {
 }
 
 func GetNode(name string) (*Node, error) {
+	log.Printf("Fetching Node %s", name)
 	node := &Node{}
 	err := mgm.Coll(node).First(bson.M{"name": name}, node)
 	if err != nil {	
@@ -45,6 +47,7 @@ func GetNode(name string) (*Node, error) {
 }
 
 func CreateNode(name string) (*Node, error) {
+	log.Printf("Creating New Node")
 	node := NewNode(name)
 	err := mgm.Coll(node).Create(node)
 	if err != nil {
@@ -55,6 +58,7 @@ func CreateNode(name string) (*Node, error) {
 }
 
 func UpdateNode(newNode *Node) (*Node, error) {
+	log.Printf("Updating Node %s", newNode.Name)
 	err := mgm.Coll(newNode).Update(newNode)
 	if err != nil { 
 		log.Println(err.Error())
@@ -64,6 +68,7 @@ func UpdateNode(newNode *Node) (*Node, error) {
 }
 
 func DeleteNode(node *Node) error {	
+	log.Printf("Deleting Node %s", node.Name)
 	err := mgm.Coll(node).Delete(node)
 	if err != nil {
 		log.Println(err.Error())

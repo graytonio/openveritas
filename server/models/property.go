@@ -35,6 +35,7 @@ func NewProperty(node *Node, property_name string, property_value interface{}) *
 }
 
 func GetAllPropertiesOfNode(node *Node) *[]Property {
+	log.Printf("Fetching all properties of node %s", node)
 	properties := []Property{}
 	err := mgm.Coll(&Property{}).SimpleFind(&properties, bson.M{"node_id": node.ID})
 	if err != nil {
@@ -46,6 +47,7 @@ func GetAllPropertiesOfNode(node *Node) *[]Property {
 }
 
 func GetAllProperties(prop_name string) (*[]Property, error) {
+	log.Printf("Fetching all nodes with property %s", prop_name)
 	properties := []Property{}
 	err := mgm.Coll(&Property{}).SimpleFind(&properties, bson.M{"property_name": prop_name})
 	if err != nil {
@@ -57,6 +59,7 @@ func GetAllProperties(prop_name string) (*[]Property, error) {
 }
 
 func GetProperty(node *Node, property_name string) (*Property, error) {
+	log.Printf("Fetching property %s of node %s", property_name, node.Name)
 	property := &Property{}
 	err := mgm.Coll(property).First(bson.M{"property_name": property_name, "node_id": node.ID}, property)
 	if err != nil {
@@ -67,6 +70,7 @@ func GetProperty(node *Node, property_name string) (*Property, error) {
 }
 
 func CreateProperty(node_name string, property_name string, property_value interface{}) (*Property, error) {
+	log.Printf("Creating new property %s for node %s with value %v", property_name, node_name, property_value)
 	node, err := GetNode(node_name)
 	if err != nil {
 		log.Println(err.Error())
@@ -82,6 +86,7 @@ func CreateProperty(node_name string, property_name string, property_value inter
 }
 
 func UpdateProperty(newProperty *Property) (*Property, error) {
+	log.Printf("Updating property %s to %v", newProperty.PropertyName, newProperty.PropertyValue)
 	err := mgm.Coll(newProperty).Update(newProperty)
 	if err != nil {
 		log.Println(err.Error())
@@ -91,6 +96,7 @@ func UpdateProperty(newProperty *Property) (*Property, error) {
 }
 
 func DeleteProperty(property *Property) error {
+	log.Printf("Deleting property %s", property.PropertyName)
 	err := mgm.Coll(property).Delete(property)
 	if err != nil {
 		log.Println(err.Error())
