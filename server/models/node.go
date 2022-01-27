@@ -24,39 +24,43 @@ func NewNode(name string) *Node {
 	}
 }
 
-func GetAllNodes() *[]Node {
+func GetAllNodes() (*[]Node, error) {
 	result := []Node{}
-	mgm.Coll(&Node{}).SimpleFind(&result, bson.M{})
-	return &result
+	err := mgm.Coll(&Node{}).SimpleFind(&result, bson.M{})
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	return &result, nil
 }
 
-func GetNode(name string) *Node {
+func GetNode(name string) (*Node, error) {
 	node := &Node{}
 	err := mgm.Coll(node).First(bson.M{"name": name}, node)
 	if err != nil {	
 		log.Println(err.Error())
-		return nil
+		return nil, err
 	}
-	return node
+	return node, nil
 }
 
-func CreateNode(name string) error {
+func CreateNode(name string) (*Node, error) {
 	node := NewNode(name)
 	err := mgm.Coll(node).Create(node)
 	if err != nil {
 		log.Println(err.Error()) 
-		return err
+		return nil, err
 	}
-	return nil
+	return node, nil
 }
 
-func UpdateNode(newNode *Node) error {
+func UpdateNode(newNode *Node) (*Node, error) {
 	err := mgm.Coll(newNode).Update(newNode)
 	if err != nil { 
 		log.Println(err.Error())
-		return err
+		return nil, err
 	}
-	return nil
+	return newNode, nil
 }
 
 func DeleteNode(node *Node) error {	
@@ -72,19 +76,20 @@ func DeleteNode(node *Node) error {
 func (model *Node) Updating(ctx context.Context) error {
 	properties := GetAllPropertiesOfNode(model)
 
-	success := true
-
+	failureFlag := false
 	for _, p := range *properties {
+
 		p.NodeID = model.ID
 		p.NodeName = model.Name
-		err := UpdateProperty(&p)
+		
+		_, err := UpdateProperty(&p)
 		if err != nil {
 			log.Println(err.Error())
-			success = true
+			failureFlag = true
 		}
 	}
 
-	if !success {
+	if failureFlag {
 		return errors.New("failed to update properties")
 	}
 
