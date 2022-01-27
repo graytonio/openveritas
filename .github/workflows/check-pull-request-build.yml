@@ -1,4 +1,4 @@
-name: Ensure pull requests build
+name: Ensure pull requests build server
 
 on:
   pull_request:
@@ -42,5 +42,5 @@ jobs:
           context: .
           push: false
           file: Dockerfile-server
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/server:latest
           labels: ${{ steps.meta.outputs.labels }}
