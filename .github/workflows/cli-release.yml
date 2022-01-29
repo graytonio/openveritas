@@ -1,4 +1,4 @@
-name: Build CLI Server Image
+name: Build CLI Release Image
 
 on:
   release:
