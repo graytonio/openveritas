@@ -9,7 +9,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/kamva/mgm/v3 v3.4.1
 	go.mongodb.org/mongo-driver v1.8.2
-	gopkg.in/ini.v1 v1.66.2
+	gopkg.in/ini.v1 v1.66.3
 )
 
 require (

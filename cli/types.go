@@ -50,7 +50,10 @@ type NewNodeCMD struct {
 }
 
 type debugFlag bool
+type Config struct {
+	host string
+}
 type Context struct {
-	Config string
+	Config Config
 	Logger *log.Logger
 }
