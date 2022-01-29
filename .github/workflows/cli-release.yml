@@ -53,6 +53,6 @@ jobs:
         with:
           context: .
           push: true
-          file: Dockerfile-client
+          file: Dockerfile-cli
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
