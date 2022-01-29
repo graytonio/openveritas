@@ -52,11 +52,11 @@ func getNodeProperty(logger *log.Logger, string, node_name string, property_name
 	logger.Printf("GET Request: %s", path)
 	
 	resp, err := http.Get(path)
-	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil { 
 		logger.Println(err)
 		return nil, err 
 	}
+	logger.Println(resp.StatusCode, resp.Status)
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
@@ -87,11 +87,11 @@ func setNodeProperty(logger *log.Logger, host string, node_name string, property
 	req.Header.Set("Content-Type", "application/json")
 	
 	resp, err := http.DefaultClient.Do(req)
-	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil {
 		logger.Println(err.Error())
 		return err
 	}
+	logger.Println(resp.StatusCode, resp.Status)
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusOK {
@@ -112,11 +112,11 @@ func deleteProperty(logger *log.Logger, host string, node_name string, property_
 	}
 
 	resp, err := http.DefaultClient.Do(req)
-	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil {
 		logger.Println(err.Error())
 		return err
 	}
+	logger.Println(resp.StatusCode, resp.Status)
 
 	if resp.StatusCode == http.StatusOK {
 		return nil
@@ -130,12 +130,11 @@ func getAllNodeProperties(logger *log.Logger, host string, node_name string) (*[
 	logger.Printf("GET Request: %s", path)
 	
 	resp, err := http.Get(path)
-	logger.Println(resp.StatusCode, resp.Status)
-
 	if err != nil { 
 		logger.Println(err.Error())
 		return nil, err 
 	}
+	logger.Println(resp.StatusCode, resp.Status)
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNotFound {
@@ -161,6 +160,7 @@ func getAllPropertyNodes(logger *log.Logger, host string, prop_name string) (*[]
 		logger.Println(err.Error())
 		return nil, err
 	}
+	logger.Println(resp.StatusCode, resp.Status)
 	defer resp.Body.Close()
 
 	var data []Property
@@ -183,11 +183,11 @@ func getAllNodes(logger *log.Logger, host string) (*[]Node, error) {
 	logger.Printf("GET Request: %s", path)
 	
 	resp, err := http.Get(path)
-	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil { 
 		logger.Println(err.Error())
 		return nil, err 
 	}
+	logger.Println(resp.StatusCode, resp.Status)
 	defer resp.Body.Close()
 
 	var data []Node
@@ -219,11 +219,11 @@ func updateNodeName(logger *log.Logger, host string, node_name string, new_name 
 
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
-	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil { 
 		logger.Println(err)
 		return err 
 	}
+	logger.Println(resp.StatusCode, resp.Status)
 
 	if resp.StatusCode == http.StatusOK {
 		return nil
@@ -242,11 +242,11 @@ func deleteNode(logger *log.Logger, host string, node_name string) error {
 	}
 
 	resp, err := http.DefaultClient.Do(req)
-	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil {
 		logger.Println(err)
 		return err
 	}
+	logger.Println(resp.StatusCode, resp.Status)
 
 	if resp.StatusCode == http.StatusOK {
 		return nil
@@ -261,11 +261,11 @@ func createNode(logger *log.Logger, host string, node_name string) error {
 	jsonData := []byte(fmt.Sprintf(`{ "name": "%s" }`, node_name))
 	logger.Printf("Payload: %s", string(jsonData))
 	resp, err := http.Post(path, "application/json", bytes.NewBuffer(jsonData))
-	logger.Println(resp.StatusCode, resp.Status)
 	if err != nil { 
 		logger.Println(err.Error())
 		return err 
 	}
+	logger.Println(resp.StatusCode, resp.Status)
 
 	if resp.StatusCode == http.StatusCreated {
 		return nil
