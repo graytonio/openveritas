@@ -11,9 +11,6 @@ env:
 jobs:
   build-docker-image:
     runs-on: ubuntu-20.04
-    permissions:
-      contents: read
-      packages: write
     steps:
       - uses: actions/checkout@v2
 
