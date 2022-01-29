@@ -1,10 +1,7 @@
 name: Run test suite against build binary
 
 # TODO
-
 on:
-  push: 
-    branches: [main]
   pull_request:
     branches: [main]
 
