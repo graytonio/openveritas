@@ -24,7 +24,7 @@ jobs:
           goarch: amd64
           project_path: "./server"
           binary_name: "veritas-server"
-          asset_name: veritas-server-${{ github.event.release.tag_name }}-${{ matrix-goos }}-${{ matrix.goarch }}
+          asset_name: veritas-server-${{ github.event.release.tag_name }}-${{ matrix.goos }}-${{ matrix.goarch }}
 
   build-docker-image:
     runs-on: ubuntu-20.04
