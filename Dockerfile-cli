@@ -4,7 +4,7 @@ RUN mkdir /app
 ADD . /app
 WORKDIR /app
 
-RUN go build -o main ./server
+RUN go build -o main ./cli
 
 FROM alpine:3.15
 COPY --from=buid /app/main .

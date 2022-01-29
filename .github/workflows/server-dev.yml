@@ -1,4 +1,4 @@
-name: Build Latest Server Image
+name: Build Dev Server Image
 
 on:
   push:
@@ -9,7 +9,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  publish-docker-image:
+  build-docker-image:
     runs-on: ubuntu-20.04
     permissions:
       contents: read
