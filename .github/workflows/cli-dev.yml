@@ -41,6 +41,6 @@ jobs:
         with:
           context: .
           push: true
-          file: Dockerfile-client
+          file: Dockerfile-cli
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/client:latest
           labels: ${{ steps.meta.outputs.labels }}
