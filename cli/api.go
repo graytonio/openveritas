@@ -171,8 +171,8 @@ func getAllPropertyNodes(logger *log.Logger, host string, prop_name string) (*[]
 	}
 
 	if len(data) == 0 {
-		logger.Printf("no nodes have property %s", data)
-		return nil, fmt.Errorf("no nodes have property %s", data)
+		logger.Printf("no nodes have property %s", prop_name)
+		return nil, fmt.Errorf("no nodes have property %s", prop_name)
 	}
 	
 	return &data, nil
