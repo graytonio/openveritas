@@ -11,8 +11,6 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-var host string = "https://veritas.conheart.com"
-
 func propToString(prop *Property) string {
 	return fmt.Sprintf("%s:%s=%v", prop.NodeName, prop.PropertyName, prop.PropertyValue)
 }
@@ -24,7 +22,7 @@ func (r *GetPropertyCMD) Run(ctx *Context) error {
 		if err != nil { return err }
 		fmt.Println(propToString(prop))
 	} else {
-		props, err := getAllPropertyNodes(ctx.Logger, host, r.PropertyName)
+		props, err := getAllPropertyNodes(ctx.Logger, ctx.Config.host, r.PropertyName)
 		if err != nil { return err }
 		for _, p := range *props {
 			fmt.Println(propToString(&p))

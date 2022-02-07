@@ -41,7 +41,7 @@ def main():
         print("Generating new ssh conf")
 
     config = fetch_config(Path.home().joinpath(".veritasrc"))
-    host = config["server"]["host"]
+    host = config["default"]["host"]
     nodes = fetch_nodes(host)
     content = generate_ssh_config_file(nodes, "ansible")
 
