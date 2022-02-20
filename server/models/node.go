@@ -11,7 +11,7 @@ import (
 
 type Node struct {
 	mgm.DefaultModel `bson:",inline"`
-	Name string `json:"name" bson:"name"`
+	Name             string `json:"name" bson:"name"`
 }
 
 type NewNodeForm struct {
@@ -39,7 +39,7 @@ func GetNode(name string) (*Node, error) {
 	log.Printf("Fetching Node %s", name)
 	node := &Node{}
 	err := mgm.Coll(node).First(bson.M{"name": name}, node)
-	if err != nil {	
+	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func CreateNode(name string) (*Node, error) {
 	node := NewNode(name)
 	err := mgm.Coll(node).Create(node)
 	if err != nil {
-		log.Println(err.Error()) 
+		log.Println(err.Error())
 		return nil, err
 	}
 	return node, nil
@@ -60,14 +60,14 @@ func CreateNode(name string) (*Node, error) {
 func UpdateNode(newNode *Node) (*Node, error) {
 	log.Printf("Updating Node %s", newNode.Name)
 	err := mgm.Coll(newNode).Update(newNode)
-	if err != nil { 
+	if err != nil {
 		log.Println(err.Error())
 		return nil, err
 	}
 	return newNode, nil
 }
 
-func DeleteNode(node *Node) error {	
+func DeleteNode(node *Node) error {
 	log.Printf("Deleting Node %s", node.Name)
 	err := mgm.Coll(node).Delete(node)
 	if err != nil {
@@ -81,14 +81,17 @@ func DeleteNode(node *Node) error {
 
 //Update hook for updating related properties
 func (model *Node) Updating(ctx context.Context) error {
-	properties := GetAllPropertiesOfNode(model)
+	properties, err := GetAllPropertiesOfNode(model)
+	if err != nil {
+		return err
+	}
 
 	failureFlag := false
 	for _, p := range *properties {
 
 		p.NodeID = model.ID
 		p.NodeName = model.Name
-		
+
 		_, err := UpdateProperty(&p)
 		if err != nil {
 			log.Println(err.Error())

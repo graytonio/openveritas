@@ -6,18 +6,19 @@ import (
 	"github.com/kamva/mgm/v3"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Property struct {
 	mgm.DefaultModel `bson:",inline"`
-	NodeID primitive.ObjectID `json:"node_id" bson:"node_id"`
-	NodeName string `json:"node_name" bson:"node_name"`
-	PropertyName string `json:"property_name" bson:"property_name"`
-	PropertyValue interface{} `json:"property_value" bson:"property_value"`
+	NodeID           primitive.ObjectID `json:"node_id" bson:"node_id"`
+	NodeName         string             `json:"node_name" bson:"node_name"`
+	PropertyName     string             `json:"property_name" bson:"property_name"`
+	PropertyValue    interface{}        `json:"property_value" bson:"property_value"`
 }
 
 type NewPropertyForm struct {
-	PropertyName string `json:"property_name"`
+	PropertyName  string      `json:"property_name"`
 	PropertyValue interface{} `json:"property_value"`
 }
 
@@ -27,23 +28,23 @@ type UpdatePropertyForm struct {
 
 func NewProperty(node *Node, property_name string, property_value interface{}) *Property {
 	return &Property{
-		NodeID: node.ID,
-		NodeName: node.Name,
-		PropertyName: property_name,
+		NodeID:        node.ID,
+		NodeName:      node.Name,
+		PropertyName:  property_name,
 		PropertyValue: property_value,
 	}
 }
 
-func GetAllPropertiesOfNode(node *Node) *[]Property {
+func GetAllPropertiesOfNode(node *Node) (*[]Property, error) {
 	log.Printf("Fetching all properties of node %s", node)
 	properties := []Property{}
 	err := mgm.Coll(&Property{}).SimpleFind(&properties, bson.M{"node_id": node.ID})
 	if err != nil {
 		log.Println(err.Error())
-		return nil
+		return nil, err
 	}
 
-	return &properties
+	return &properties, nil
 }
 
 func GetAllProperties(prop_name string) (*[]Property, error) {
@@ -87,11 +88,11 @@ func CreateProperty(node_name string, property_name string, property_value inter
 
 func UpdateProperty(newProperty *Property) (*Property, error) {
 	log.Printf("Updating property %s to %v", newProperty.PropertyName, newProperty.PropertyValue)
-	err := mgm.Coll(newProperty).Update(newProperty)
+	err := mgm.Coll(newProperty).Update(newProperty, options.Update().SetUpsert(true))
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
-	}	
+	}
 	return newProperty, nil
 }
 

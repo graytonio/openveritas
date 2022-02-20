@@ -3,7 +3,6 @@ package routes
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -24,13 +23,10 @@ func propertyGetHander(rw http.ResponseWriter, r *http.Request) {
 	prop_name := vars["prop"]
 
 	props, err := models.GetAllProperties(prop_name)
-	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		log.Println(err.Error())
+	if handleMongoError(err, rw) {
 		return
 	}
-	if props == nil {
-		rw.WriteHeader(http.StatusNotFound)
+	if handleNotFoundError(props, rw) {
 		return
 	}
 
