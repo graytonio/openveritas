@@ -18,15 +18,14 @@ func PropertyQueryHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Prase Property Query
+// TODO Implement Wildcards
 func propertyGetHander(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	prop_name := vars["prop"]
 
 	props, err := models.GetAllProperties(prop_name)
-	if handleMongoError(err, rw) {
-		return
-	}
-	if handleNotFoundError(props, rw) {
+	if handleMongoError(err, rw) || handleNotFoundError(props, rw) {
 		return
 	}
 

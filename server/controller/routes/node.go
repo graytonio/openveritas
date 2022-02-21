@@ -13,21 +13,16 @@ func NodeHandler(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		nodeGetHandler(rw, r)
-		return
-	case http.MethodPost:
-		nodePostHandler(rw, r)
-		return
 	case http.MethodPut:
 		nodePutHandler(rw, r)
-		return
 	case http.MethodDelete:
 		nodeDeleteHandler(rw, r)
-		return
 	default:
 		rw.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
+// Get All/A Node
 func nodeGetHandler(rw http.ResponseWriter, r *http.Request) {
 	node_name := mux.Vars(r)["node"]
 	if node_name == "" {
@@ -50,39 +45,29 @@ func nodeGetHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func nodePostHandler(rw http.ResponseWriter, r *http.Request) {
+// Update/Create Node
+func nodePutHandler(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	node_name := vars["node"]
+
 	var body models.NewNodeForm
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if handleBodyParseError(err, rw) {
 		return
 	}
 
-	_, err = models.CreateNode(body.Name)
+	node, err := models.GetNode(node_name)
 	if handleMongoError(err, rw) {
 		return
 	}
 
-	rw.WriteHeader(http.StatusCreated)
-}
-
-func nodePutHandler(rw http.ResponseWriter, r *http.Request) {
-	node_name := mux.Vars(r)["node"]
-	node, err := models.GetNode(node_name)
-	if handleMongoError(err, rw) || handleNotFoundError(node, rw) {
-		return
-	}
-
-	var body models.NewNodeForm
-	err = json.NewDecoder(r.Body).Decode(&body)
-	if handleBodyParseError(err, rw) {
-		return
-	}
-
-	if body.Name != "" {
+	if node == nil {
+		node = models.NewNode(body.Name)
+	} else {
 		node.Name = body.Name
 	}
 
-	_, err = models.UpdateNode(node)
+	_, err = models.UpdateOrCreateNode(node)
 	if handleMongoError(err, rw) {
 		return
 	}

@@ -9,9 +9,11 @@ import (
 
 func InitDB(mongo_db string, mongo_uri string) {
 	err := mgm.SetDefaultConfig(nil, mongo_db, options.Client().ApplyURI(mongo_uri))
-	if err != nil { log.Fatalln(err.Error()) }
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
 	log.Println("Database connection established")
-	
+
 	initIndexes()
 }
 

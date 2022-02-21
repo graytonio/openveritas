@@ -13,8 +13,6 @@ func PropertyHandler(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		nodePropertyGetHandler(rw, r)
-	case http.MethodPost:
-		nodePropertyPostHandler(rw, r)
 	case http.MethodPut:
 		nodePropertyPutHandler(rw, r)
 	case http.MethodDelete:
@@ -24,6 +22,7 @@ func PropertyHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Get Property of Node
 func nodePropertyGetHandler(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	node_name := vars["node"]
@@ -54,35 +53,20 @@ func nodePropertyGetHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func nodePropertyPostHandler(rw http.ResponseWriter, r *http.Request) {
-	node_name := mux.Vars(r)["node"]
-	var body models.NewPropertyForm
-	err := json.NewDecoder(r.Body).Decode(&body)
-	if handleBodyParseError(err, rw) {
-		return
-	}
-
-	property, err := models.CreateProperty(node_name, body.PropertyName, body.PropertyValue)
-	if handleMongoError(err, rw) || handleNotFoundError(property, rw) {
-		return
-	}
-
-	rw.WriteHeader(http.StatusCreated)
-}
-
+// Update/Create Property of Node
 func nodePropertyPutHandler(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	node_name := vars["node"]
 	prop_name := vars["prop"]
 
-	node, err := models.GetNode(node_name)
-	if handleMongoError(err, rw) || handleNotFoundError(node, rw) {
+	var body models.PropertyForm
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if handleBodyParseError(err, rw) {
 		return
 	}
 
-	var body models.UpdatePropertyForm
-	err = json.NewDecoder(r.Body).Decode(&body)
-	if handleBodyParseError(err, rw) {
+	node, err := models.GetNode(node_name)
+	if handleMongoError(err, rw) || handleNotFoundError(node, rw) {
 		return
 	}
 
@@ -94,10 +78,11 @@ func nodePropertyPutHandler(rw http.ResponseWriter, r *http.Request) {
 	if property == nil {
 		property = models.NewProperty(node, prop_name, body.PropertyValue)
 	} else {
+		property.PropertyName = body.PropertyName
 		property.PropertyValue = body.PropertyValue
 	}
 
-	_, err = models.UpdateProperty(property)
+	_, err = models.UpdateOrCreateProperty(property)
 	if handleMongoError(err, rw) {
 		return
 	}
@@ -105,7 +90,7 @@ func nodePropertyPutHandler(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusOK)
 }
 
-//Delete Property
+// Delete Property of Node
 func nodePropertyDeleteHandler(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	node_name := vars["node"]

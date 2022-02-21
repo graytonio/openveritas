@@ -7,6 +7,7 @@ import (
 
 	"github.com/kamva/mgm/v3"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type Node struct {
@@ -46,20 +47,9 @@ func GetNode(name string) (*Node, error) {
 	return node, nil
 }
 
-func CreateNode(name string) (*Node, error) {
-	log.Printf("Creating New Node")
-	node := NewNode(name)
-	err := mgm.Coll(node).Create(node)
-	if err != nil {
-		log.Println(err.Error())
-		return nil, err
-	}
-	return node, nil
-}
-
-func UpdateNode(newNode *Node) (*Node, error) {
+func UpdateOrCreateNode(newNode *Node) (*Node, error) {
 	log.Printf("Updating Node %s", newNode.Name)
-	err := mgm.Coll(newNode).Update(newNode)
+	err := mgm.Coll(newNode).Update(newNode, options.Update().SetUpsert(true))
 	if err != nil {
 		log.Println(err.Error())
 		return nil, err
@@ -77,7 +67,22 @@ func DeleteNode(node *Node) error {
 	return nil
 }
 
-//TODO Delete Hook to remove floating properties
+//Delete Hook to remove floating properties
+func (model *Node) Deleting(ctx context.Context) error {
+	properties, err := GetAllPropertiesOfNode(model)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range *properties {
+		err = DeleteProperty(&p)
+		if err != nil {
+			return errors.New("filed to delete floating properties")
+		}
+	}
+
+	return nil
+}
 
 //Update hook for updating related properties
 func (model *Node) Updating(ctx context.Context) error {
@@ -86,21 +91,16 @@ func (model *Node) Updating(ctx context.Context) error {
 		return err
 	}
 
-	failureFlag := false
 	for _, p := range *properties {
 
 		p.NodeID = model.ID
 		p.NodeName = model.Name
 
-		_, err := UpdateProperty(&p)
+		_, err := UpdateOrCreateProperty(&p)
 		if err != nil {
 			log.Println(err.Error())
-			failureFlag = true
+			return errors.New("failed to update properties")
 		}
-	}
-
-	if failureFlag {
-		return errors.New("failed to update properties")
 	}
 
 	return nil

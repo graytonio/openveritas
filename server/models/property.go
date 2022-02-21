@@ -17,12 +17,8 @@ type Property struct {
 	PropertyValue    interface{}        `json:"property_value" bson:"property_value"`
 }
 
-type NewPropertyForm struct {
+type PropertyForm struct {
 	PropertyName  string      `json:"property_name"`
-	PropertyValue interface{} `json:"property_value"`
-}
-
-type UpdatePropertyForm struct {
 	PropertyValue interface{} `json:"property_value"`
 }
 
@@ -70,23 +66,7 @@ func GetProperty(node *Node, property_name string) (*Property, error) {
 	return property, nil
 }
 
-func CreateProperty(node_name string, property_name string, property_value interface{}) (*Property, error) {
-	log.Printf("Creating new property %s for node %s with value %v", property_name, node_name, property_value)
-	node, err := GetNode(node_name)
-	if err != nil {
-		log.Println(err.Error())
-		return nil, err
-	}
-	property := NewProperty(node, property_name, property_value)
-	err = mgm.Coll(property).Create(property)
-	if err != nil {
-		log.Println(err.Error())
-		return nil, err
-	}
-	return property, nil
-}
-
-func UpdateProperty(newProperty *Property) (*Property, error) {
+func UpdateOrCreateProperty(newProperty *Property) (*Property, error) {
 	log.Printf("Updating property %s to %v", newProperty.PropertyName, newProperty.PropertyValue)
 	err := mgm.Coll(newProperty).Update(newProperty, options.Update().SetUpsert(true))
 	if err != nil {
