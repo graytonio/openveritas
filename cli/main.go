@@ -47,7 +47,7 @@ func (r *DeletePropertyCMD) Run(ctx *Context) error {
 	return nil
 }
 
-// Get All Properties of a Node
+// Get All Properties of a Node or get all Nodes
 func (r *GetNodeCMD) Run(ctx *Context) error {
 	if r.NodeName != "" {
 		props, err := getAllNodeProperties(ctx.Logger, ctx.Config.host, r.NodeName)
@@ -81,14 +81,6 @@ func (r *DeleteNodeCMD) Run(ctx *Context) error {
 	return nil
 }
 
-// Create Node
-func (r *NewNodeCMD) Run(ctx *Context) error {
-	err := createNode(ctx.Logger, ctx.Config.host, r.NodeName)
-	if err != nil { return err }
-	fmt.Printf("Created node %s\n", r.NodeName)
-	return nil
-}
-
 func (d debugFlag) BeforeApply(logger *log.Logger) error {
 	logger.SetOutput(os.Stdout)
 	return nil
@@ -103,9 +95,8 @@ var cli struct {
 	DeleteProperty DeletePropertyCMD `cmd:"" help:"Delete a property on a node"`
 	
 	GetNode GetNodeCMD `cmd:"" help:"Get all properties of a node"`
-	SetNode SetNodeCMD `cmd:"" help:"Rename Node"`
+	SetNode SetNodeCMD `cmd:"" help:"Create or Update a Node"`
 	DeleteNode DeleteNodeCMD `cmd:"" help:"Delete Node"`
-	NewNode NewNodeCMD `cmd:"" help:"Create new Node"`
 }
 
 func loadDefaultConfig() Config {
