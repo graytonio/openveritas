@@ -37,16 +37,12 @@ type GetNodeCMD struct {
 }
 
 type SetNodeCMD struct {
-	NodeName string `arg:"" help:"Name of node to update"`
-	NewName string `arg:"" help:"New name for node"`
+	NodeName string `arg:"" help:"Name of node to set"`
+	NewName string `arg:"" optional:"" help:"New name for node"`
 }
 
 type DeleteNodeCMD struct {
 	NodeName string `arg:"" help:"Name of node to delete"`
-}
-
-type NewNodeCMD struct {
-	NodeName string `arg:"" help:"Name of node to create"`
 }
 
 type debugFlag bool

@@ -62,7 +62,7 @@ func nodePutHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if node == nil {
-		node = models.NewNode(body.Name)
+		node = models.NewNode(node_name)
 	} else {
 		node.Name = body.Name
 	}

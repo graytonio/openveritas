@@ -256,22 +256,3 @@ func deleteNode(logger *log.Logger, host string, node_name string) error {
 
 	return fmt.Errorf("error deleting node %s", node_name)
 }
-
-func createNode(logger *log.Logger, host string, node_name string) error {
-	path := appendToHostString(host, "/node")
-	logger.Printf("POST Request: %s", path)
-	jsonData := []byte(fmt.Sprintf(`{ "name": "%s" }`, node_name))
-	logger.Printf("Payload: %s", string(jsonData))
-	resp, err := http.Post(path, "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
-		logger.Println(err.Error())
-		return err
-	}
-	logger.Println(resp.StatusCode, resp.Status)
-
-	if resp.StatusCode == http.StatusCreated {
-		return nil
-	}
-
-	return fmt.Errorf("error creating node %s", node_name)
-}
