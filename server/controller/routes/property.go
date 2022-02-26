@@ -3,7 +3,6 @@ package routes
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -19,18 +18,14 @@ func PropertyQueryHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Prase Property Query
+// TODO Implement Wildcards
 func propertyGetHander(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	prop_name := vars["prop"]
 
 	props, err := models.GetAllProperties(prop_name)
-	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		log.Println(err.Error())
-		return
-	}
-	if props == nil {
-		rw.WriteHeader(http.StatusNotFound)
+	if handleMongoError(err, rw) || handleNotFoundError(props, rw) {
 		return
 	}
 

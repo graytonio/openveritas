@@ -1,16 +1,22 @@
 #!/bin/bash
 
-server_package="veritas-server"
-client_package="veritas-client"
+parent_path=$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)
+
+server_package="$parent_path/dev-build/veritas-server"
+client_package="$parent_path/dev-build/veritas-client"
 
 target=$1
 
 buildServer() {
+    cd "$parent_path"
+    mkdir -p ./dev-build
     echo "Building Server"
     go build -o $server_package ./server
 }
 
 buildCLI() {
+    cd "$parent_path"
+    mkdir -p ./dev-build
     echo "Building CLI"
     go build -o $client_package ./cli
 }
