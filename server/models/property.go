@@ -5,22 +5,8 @@ import (
 
 	"github.com/kamva/mgm/v3"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type Property struct {
-	mgm.DefaultModel `bson:",inline"`
-	NodeID           primitive.ObjectID `json:"node_id" bson:"node_id"`
-	NodeName         string             `json:"node_name" bson:"node_name"`
-	PropertyName     string             `json:"property_name" bson:"property_name"`
-	PropertyValue    interface{}        `json:"property_value" bson:"property_value"`
-}
-
-type PropertyForm struct {
-	PropertyName  string      `json:"property_name"`
-	PropertyValue interface{} `json:"property_value"`
-}
 
 func NewProperty(node *Node, property_name string, property_value interface{}) *Property {
 	return &Property{

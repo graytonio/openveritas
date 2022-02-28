@@ -30,13 +30,12 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func InitServer(port int) *http.Server {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/prop/{prop}", routes.PropertyQueryHandler).Methods("GET")
-
 	r.HandleFunc("/node", routes.NodeHandler).Methods("GET")
-	r.HandleFunc("/node/{node}", routes.NodeHandler).Methods("GET", "PUT", "DELETE")
+	r.HandleFunc("/node/{node_name}", routes.NodeHandler).Methods("GET", "PUT", "DELETE")
+	r.HandleFunc("/node/{node_name}/prop", routes.PropertyHandler).Methods("GET")
+	r.HandleFunc("/node/{node_name}/prop/{prop_name}", routes.PropertyHandler).Methods("GET", "PUT", "DELETE")
 
-	r.HandleFunc("/node/{node}/prop", routes.PropertyHandler).Methods("GET")
-	r.HandleFunc("/node/{node}/prop/{prop}", routes.PropertyHandler).Methods("GET", "PUT", "DELETE")
+	r.HandleFunc("/prop/{prop_name}", routes.PropertyQueryHandler).Methods("GET")
 
 	r.Use(loggingMiddleware)
 

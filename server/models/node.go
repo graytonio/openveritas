@@ -10,15 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Node struct {
-	mgm.DefaultModel `bson:",inline"`
-	Name             string `json:"name" bson:"name"`
-}
-
-type NewNodeForm struct {
-	Name string `json:"name"`
-}
-
 func NewNode(name string) *Node {
 	return &Node{
 		Name: name,

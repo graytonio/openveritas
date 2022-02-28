@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -22,14 +20,16 @@ func PropertyQueryHandler(rw http.ResponseWriter, r *http.Request) {
 // TODO Implement Wildcards
 func propertyGetHander(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	prop_name := vars["prop"]
+	prop_name := vars["prop_name"]
 
 	props, err := models.GetAllProperties(prop_name)
-	if handleMongoError(err, rw) || handleNotFoundError(props, rw) {
+	if isMongoError(err) {
+		sendDBError(rw, err)
+		return
+	} else if isNotFoundError(props) {
+		sendError(rw, http.StatusNotFound, "Property Not Found")
 		return
 	}
 
-	response, _ := json.Marshal(props)
-	rw.Header().Add("Content-Type", "application/json")
-	fmt.Fprintf(rw, "%s", string(response))
+	sendJSONData(rw, props)
 }
