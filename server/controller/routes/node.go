@@ -25,7 +25,7 @@ func NodeHandler(rw http.ResponseWriter, r *http.Request) {
 // Get All/A Node
 func nodeGetHandler(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	node_name := vars["node"]
+	node_name := vars["node_name"]
 	var data interface{}
 	var err error
 
@@ -35,15 +35,15 @@ func nodeGetHandler(rw http.ResponseWriter, r *http.Request) {
 		data, err = models.GetNode(node_name)
 	}
 
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
-	} else if isNotFoundError(err) {
-		sendError(rw, http.StatusNotFound, "Node Not Found")
+	} else if IsNotFoundError(data) {
+		SendError(rw, http.StatusNotFound, "Node Not Found")
 		return
 	}
 
-	sendJSONData(rw, data)
+	SendJSONData(rw, data, 200)
 }
 
 // Update/Create Node
@@ -52,32 +52,32 @@ func nodePutHandler(rw http.ResponseWriter, r *http.Request) {
 	node_name := vars["node_name"]
 
 	if node_name == "" {
-		sendError(rw, http.StatusBadRequest, "node_name is required parameter")
+		SendError(rw, http.StatusBadRequest, "node_name is required parameter")
 		return
 	}
 
 	var body models.NewNodeForm
 	err := json.NewDecoder(r.Body).Decode(&body)
-	if isError(err) {
-		sendError(rw, http.StatusBadRequest, fmt.Sprintf("Error parsing request body: %s", err.Error()))
+	if IsError(err) {
+		SendError(rw, http.StatusBadRequest, fmt.Sprintf("Error parsing request body: %s", err.Error()))
 		return
 	}
 
 	node, err := models.GetNode(node_name)
-	if isMongoError(err,) {
-		sendDBError(rw, err)
+	if IsMongoError(err,) {
+		SendDBError(rw, err)
 		return
 	}
 
-	if isNotFoundError(node) {
+	if IsNotFoundError(node) {
 		node = models.NewNode(node_name)
 	} else {
 		node.Name = body.Name
 	}
 
 	_, err = models.UpdateOrCreateNode(node)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
 	}
 }
@@ -87,17 +87,17 @@ func nodeDeleteHandler(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	node_name := vars["node_name"]
 	node, err := models.GetNode(node_name)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
-	} else if isNotFoundError(node) {
-		sendError(rw, http.StatusNotFound, "Node not Found")
+	} else if IsNotFoundError(node) {
+		SendError(rw, http.StatusNotFound, "Node not Found")
 		return
 	}
 
 	err = models.DeleteNode(node)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
 	}
 

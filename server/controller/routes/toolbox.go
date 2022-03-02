@@ -11,24 +11,24 @@ import (
 	"github.com/graytonio/openveritas/server/models"
 )
 
-func sendJSONData(rw http.ResponseWriter, data interface{}) {
+func SendJSONData(rw http.ResponseWriter, data interface{}, code int) {
 	response, _ := json.Marshal(data)
 	rw.Header().Add("Content-Type", "application/json")
+	rw.WriteHeader(code)
 	fmt.Fprintf(rw, "%s", string(response))
 }
 
-func isError(err error) bool {
+func IsError(err error) bool {
 	if err != nil {
 		log.Println(err.Error())
 		return true
 	}
-
 	return false
 }
 
 
-func isMongoError(err error) bool {
-	if !isError(err) {
+func IsMongoError(err error) bool {
+	if !IsError(err) {
 		return false
 	}
 
@@ -40,20 +40,23 @@ func isMongoError(err error) bool {
 	return true
 }
 
-func isNotFoundError(data interface{}) bool {
+func IsNotFoundError(data interface{}) bool {
 	if data == nil || reflect.ValueOf(data).IsNil() {
+		return true
+	}
+
+	if reflect.ValueOf(data).Len() == 0 {
 		return true
 	}
 
 	return false
 }
 
-func sendError(rw http.ResponseWriter, code int, message string) {
-	rw.WriteHeader(code)
+func SendError(rw http.ResponseWriter, code int, message string) {
 	err := models.NewError(code, message)
-	sendJSONData(rw, err)
+	SendJSONData(rw, err, code)
 }
 
-func sendDBError(rw http.ResponseWriter, err error) {
-	sendError(rw, http.StatusInternalServerError, fmt.Sprintf("DB Error: %s", err.Error()))
+func SendDBError(rw http.ResponseWriter, err error) {
+	SendError(rw, http.StatusInternalServerError, fmt.Sprintf("DB Error: %s", err.Error()))
 }

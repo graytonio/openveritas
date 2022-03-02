@@ -31,11 +31,11 @@ func nodePropertyGetHandler(rw http.ResponseWriter, r *http.Request) {
 	var err error
 
 	node, err := models.GetNode(node_name)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
-	} else if isNotFoundError(node) {
-		sendError(rw, http.StatusNotFound, "Node not Found")
+	} else if IsNotFoundError(node) {
+		SendError(rw, http.StatusNotFound, "Node not Found")
 		return
 	}
 
@@ -45,14 +45,14 @@ func nodePropertyGetHandler(rw http.ResponseWriter, r *http.Request) {
 		data, err = models.GetProperty(node, prop_name)
 	}
 
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
-	} else if isNotFoundError(data) {
-		sendError(rw, http.StatusNotFound, "Property Not Found")
+	} else if IsNotFoundError(data) {
+		SendError(rw, http.StatusNotFound, "Property Not Found")
 	}
 
-	sendJSONData(rw, data)
+	SendJSONData(rw, data, 200)
 }
 
 // Update/Create Property of Node
@@ -63,27 +63,27 @@ func nodePropertyPutHandler(rw http.ResponseWriter, r *http.Request) {
 
 	var body models.PropertyForm
 	err := json.NewDecoder(r.Body).Decode(&body)
-	if isError(err) {
-		sendError(rw, http.StatusBadRequest, fmt.Sprintf("Error parsing request body: %s", err.Error()))
+	if IsError(err) {
+		SendError(rw, http.StatusBadRequest, fmt.Sprintf("Error parsing request body: %s", err.Error()))
 		return
 	}
 
 	node, err := models.GetNode(node_name)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
-	} else if isNotFoundError(err) {
-		sendError(rw, http.StatusNotFound, "Node Not Found")
+	} else if IsNotFoundError(err) {
+		SendError(rw, http.StatusNotFound, "Node Not Found")
 		return
 	}
 
 	property, err := models.GetProperty(node, prop_name)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
 	}
 
-	if isNotFoundError(property) {
+	if IsNotFoundError(property) {
 		property = models.NewProperty(node, prop_name, body.PropertyValue)
 	} else {
 		property.PropertyName = body.PropertyName
@@ -91,8 +91,8 @@ func nodePropertyPutHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = models.UpdateOrCreateProperty(property)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
 	}
 }
@@ -104,26 +104,26 @@ func nodePropertyDeleteHandler(rw http.ResponseWriter, r *http.Request) {
 	prop_name := vars["prop"]
 
 	node, err := models.GetNode(node_name)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
-	} else if isNotFoundError(node) {
-		sendError(rw, http.StatusNotFound, "Node Not Fount")
+	} else if IsNotFoundError(node) {
+		SendError(rw, http.StatusNotFound, "Node Not Fount")
 		return
 	}
 
 	property, err := models.GetProperty(node, prop_name)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
-	} else if isNotFoundError(property) {
-		sendError(rw, http.StatusNotFound, "Property Not Found")
+	} else if IsNotFoundError(property) {
+		SendError(rw, http.StatusNotFound, "Property Not Found")
 		return
 	}
 
 	err = models.DeleteProperty(property)
-	if isMongoError(err) {
-		sendDBError(rw, err)
+	if IsMongoError(err) {
+		SendDBError(rw, err)
 		return
 	}
 

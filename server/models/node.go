@@ -16,22 +16,22 @@ func NewNode(name string) *Node {
 	}
 }
 
-func GetAllNodes() (*[]Node, error) {
+func GetAllNodes() ([]Node, error) {
 	log.Println("Fetching All Nodes")
 	result := []Node{}
 	err := mgm.Coll(&Node{}).SimpleFind(&result, bson.M{})
-	if err != nil {
+	if IsMongoError(err) {
 		log.Println(err.Error())
 		return nil, err
 	}
-	return &result, nil
+	return result, nil
 }
 
 func GetNode(name string) (*Node, error) {
 	log.Printf("Fetching Node %s", name)
 	node := &Node{}
 	err := mgm.Coll(node).First(bson.M{"name": name}, node)
-	if err != nil {
+	if IsMongoError(err) {
 		log.Println(err.Error())
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func GetNode(name string) (*Node, error) {
 func UpdateOrCreateNode(newNode *Node) (*Node, error) {
 	log.Printf("Updating Node %s", newNode.Name)
 	err := mgm.Coll(newNode).Update(newNode, options.Update().SetUpsert(true))
-	if err != nil {
+	if IsMongoError(err) {
 		log.Println(err.Error())
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func UpdateOrCreateNode(newNode *Node) (*Node, error) {
 func DeleteNode(node *Node) error {
 	log.Printf("Deleting Node %s", node.Name)
 	err := mgm.Coll(node).Delete(node)
-	if err != nil {
+	if IsMongoError(err) {
 		log.Println(err.Error())
 		return err
 	}
@@ -61,13 +61,13 @@ func DeleteNode(node *Node) error {
 //Delete Hook to remove floating properties
 func (model *Node) Deleting(ctx context.Context) error {
 	properties, err := GetAllPropertiesOfNode(model)
-	if err != nil {
+	if IsMongoError(err) {
 		return err
 	}
 
-	for _, p := range *properties {
+	for _, p := range properties {
 		err = DeleteProperty(&p)
-		if err != nil {
+		if IsMongoError(err) {
 			return errors.New("filed to delete floating properties")
 		}
 	}
@@ -78,17 +78,17 @@ func (model *Node) Deleting(ctx context.Context) error {
 //Update hook for updating related properties
 func (model *Node) Updating(ctx context.Context) error {
 	properties, err := GetAllPropertiesOfNode(model)
-	if err != nil {
+	if IsMongoError(err) {
 		return err
 	}
 
-	for _, p := range *properties {
+	for _, p := range properties {
 
 		p.NodeID = model.ID
 		p.NodeName = model.Name
 
 		_, err := UpdateOrCreateProperty(&p)
-		if err != nil {
+		if IsMongoError(err) {
 			log.Println(err.Error())
 			return errors.New("failed to update properties")
 		}

@@ -17,35 +17,35 @@ func NewProperty(node *Node, property_name string, property_value interface{}) *
 	}
 }
 
-func GetAllPropertiesOfNode(node *Node) (*[]Property, error) {
+func GetAllPropertiesOfNode(node *Node) ([]Property, error) {
 	log.Printf("Fetching all properties of node %s", node)
 	properties := []Property{}
 	err := mgm.Coll(&Property{}).SimpleFind(&properties, bson.M{"node_id": node.ID})
-	if err != nil {
+	if IsMongoError(err) {
 		log.Println(err.Error())
 		return nil, err
 	}
 
-	return &properties, nil
+	return properties, nil
 }
 
-func GetAllProperties(prop_name string) (*[]Property, error) {
+func GetAllProperties(prop_name string) ([]Property, error) {
 	log.Printf("Fetching all nodes with property %s", prop_name)
 	properties := []Property{}
 	err := mgm.Coll(&Property{}).SimpleFind(&properties, bson.M{"property_name": prop_name})
-	if err != nil {
+	if IsMongoError(err) {
 		log.Println(err.Error())
 		return nil, err
 	}
 
-	return &properties, nil
+	return properties, nil
 }
 
 func GetProperty(node *Node, property_name string) (*Property, error) {
 	log.Printf("Fetching property %s of node %s", property_name, node.Name)
 	property := &Property{}
 	err := mgm.Coll(property).First(bson.M{"property_name": property_name, "node_id": node.ID}, property)
-	if err != nil {
+	if IsMongoError(err) {
 		log.Println(err.Error())
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func GetProperty(node *Node, property_name string) (*Property, error) {
 func UpdateOrCreateProperty(newProperty *Property) (*Property, error) {
 	log.Printf("Updating property %s to %v", newProperty.PropertyName, newProperty.PropertyValue)
 	err := mgm.Coll(newProperty).Update(newProperty, options.Update().SetUpsert(true))
-	if err != nil {
+	if IsMongoError(err) {
 		log.Println(err.Error())
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func UpdateOrCreateProperty(newProperty *Property) (*Property, error) {
 func DeleteProperty(property *Property) error {
 	log.Printf("Deleting property %s", property.PropertyName)
 	err := mgm.Coll(property).Delete(property)
-	if err != nil {
+	if IsMongoError(err) {
 		log.Println(err.Error())
 		return err
 	}

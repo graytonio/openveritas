@@ -29,7 +29,7 @@ type PropertyForm struct {
 
 type Error struct {
 	Message string `json:"message"`
-	Code int `json:"int"`
+	Code int `json:"code"`
 }
 
 func NewError(code int, message string) *Error {
