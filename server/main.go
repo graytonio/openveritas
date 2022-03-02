@@ -1,66 +1,80 @@
 package main
 
 import (
-	"context"
-	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
 	"strconv"
-	"strings"
-	"time"
 
-	"github.com/graytonio/openveritas/server/controller"
-	"github.com/graytonio/openveritas/server/models"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/graytonio/openveritas/server/controllers"
+	"github.com/graytonio/openveritas/server/routes"
 	"github.com/joho/godotenv"
+	"github.com/kamva/mgm/v3"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var srv *http.Server
-var wait time.Duration
-
-var mongo_db, mongo_uri string
-var port int
-
-func init() {
-	var wait time.Duration
-    flag.DurationVar(&wait, "graceful-timeout", time.Second * 15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
-    flag.Parse()
-
-	initEnv()
-	models.InitDB(mongo_db, mongo_uri)
-	srv = controller.InitServer(port)
+type ConfigMap struct {
+	MongoDB string
+	MongoURI string
+	Port int
 }
 
-func initEnv() {
+func main() {
+	// Load ENV variables
+	config := loadEnv()
+
+	// Load DB Connection
+	loadDB(config)
+
+	// Load Routes
+	r := chi.NewRouter()
+	loadMiddleware(r)
+	loadControllers(r)
+
+	// Start Server
+	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r)
+}
+
+func loadEnv() *ConfigMap {
 	err := godotenv.Load()
 	if err != nil {
 		log.Println(err)
-		if !strings.Contains(err.Error(), "no such file or directory") {
-			log.Fatalln("error loading .env file")
-		}
 	}
 
-	mongo_db = os.Getenv("MONGO_DB")
-	mongo_uri = os.Getenv("MONGO_URI")
-	port, _ = strconv.Atoi(os.Getenv("PORT"))
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		log.Println(err)
+	}
+
+	return &ConfigMap{
+		MongoDB: os.Getenv("MONGO_DB"),
+		MongoURI: os.Getenv("MONGO_URI"),
+		Port: port,
+	}
 }
 
-func waitForExit() {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	
-	<-c
-	ctx, cancel := context.WithTimeout(context.Background(), wait)
-	defer cancel()
-	srv.Shutdown(ctx)
+func loadDB(config *ConfigMap) {
+	err := mgm.SetDefaultConfig(nil, config.MongoDB, options.Client().ApplyURI(config.MongoURI))
+	if err != nil {
+		log.Println(err)
+	}
+
+	CreateIndex(*mgm.Coll(&controllers.Node{}), "node_name", true)
+	CreateIndex(*mgm.Coll(&controllers.Property{}), "prop_name", false)
+	CreatePairIndex(*mgm.Coll(&controllers.Property{}), "node_name", "prop_name", true)
 }
 
-func main(){
-	go controller.StartServer()
-	log.Printf("Web interface listening on port %d", port)
+func loadMiddleware(r *chi.Mux) {
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+}
 
-	waitForExit()
-	log.Println("Shutting down")
-	os.Exit(0)
+func loadControllers(r *chi.Mux) {
+	r.Mount("/node", routes.NodeRouter())
+	r.Mount("/prop", routes.PropertyRouter())
 }
