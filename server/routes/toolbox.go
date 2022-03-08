@@ -12,13 +12,13 @@ import (
 
 type Error struct {
 	Message string `json:"message"`
-	Code int `json:"code"`
+	Code    int    `json:"code"`
 }
 
 func newError(code int, message string) *Error {
-	return &Error {
+	return &Error{
 		Message: message,
-		Code: code,
+		Code:    code,
 	}
 }
 
@@ -48,7 +48,7 @@ func isDBError(err error) bool {
 		return false
 	}
 
-	return false
+	return true
 }
 
 func isData(data interface{}) bool {

@@ -52,14 +52,14 @@ func getNodeByName(w http.ResponseWriter, r *http.Request) {
 
 func putNode(w http.ResponseWriter, r *http.Request) {
 	node_name := chi.URLParam(r, "node_name")
-	
+
 	var body controllers.Node
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if isError(err) {
 		sendError(w, http.StatusBadRequest, fmt.Sprintf("Error parsing request body: %s", err.Error()))
 		return
 	}
-	
+
 	node, err := controllers.GetNodeByName(node_name)
 	if isDBError(err) {
 		sendDBError(w, err)
@@ -67,28 +67,21 @@ func putNode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if isData(node) {
-		properties, err := controllers.GetAllNodeProperties(node)
 		if isDBError(err) {
 			sendDBError(w, err)
 			return
 		}
-		
+
 		node.NodeName = body.NodeName
+
 		updateNode(node, w, r)
-		
-		// Update Property Names When Updating a Node Name
-		for _, p := range properties {
-			p.NodeName = body.NodeName
-			err = controllers.UpdateProperty(&p)
-			if isDBError(err) {
-				sendDBError(w, err)
-				return
-			}
+	} else {
+		if node_name != body.NodeName {
+			sendError(w, http.StatusBadRequest, "Body Parameter node_name and Url Parameter node_name Must Match")
 		}
 
-	} else {
 		createNode(body.NodeName, w, r)
-	}	
+	}
 }
 
 func createNode(node_name string, w http.ResponseWriter, r *http.Request) {
@@ -111,7 +104,6 @@ func updateNode(node *controllers.Node, w http.ResponseWriter, r *http.Request) 
 		sendDBError(w, err)
 		return
 	}
-
 
 }
 
