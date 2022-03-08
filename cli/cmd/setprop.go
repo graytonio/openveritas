@@ -31,9 +31,9 @@ func setPropRun(cmd *cobra.Command, args []string) error {
 
 	switch status_code {
 	case http.StatusOK:
-		fmt.Printf("%s Updated to %s on %s", prop_name, prop_value, node_name)
+		fmt.Printf("%s Updated to %s on %s\n", prop_name, prop_value, node_name)
 	case http.StatusCreated:
-		fmt.Printf("%s Set to %s on %s", prop_name, prop_value, node_name)
+		fmt.Printf("%s Set to %s on %s\n", prop_name, prop_value, node_name)
 	}
 	return nil
 }

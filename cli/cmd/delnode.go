@@ -25,6 +25,6 @@ func delNodeCmdRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("Node %s Deleted", node_name)
+	fmt.Printf("Node %s Deleted\n", node_name)
 	return nil
 }
