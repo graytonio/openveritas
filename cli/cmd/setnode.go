@@ -39,9 +39,9 @@ func createNode(node_name string) error {
 
 	switch status_code {
 	case http.StatusCreated:
-		fmt.Printf("Node %s Created", node_name)
+		fmt.Printf("Node %s Created\n", node_name)
 	case http.StatusOK:
-		fmt.Printf("Node %s Already Exists", node_name)
+		fmt.Printf("Node %s Already Exists\n", node_name)
 	}
 	return nil
 }
@@ -54,9 +54,9 @@ func updateNode(node_name string, new_name string) error {
 
 	switch status_code {
 	case http.StatusCreated:
-		fmt.Printf("Node %s Created", node_name)
+		fmt.Printf("Node %s Created\n", node_name)
 	case http.StatusOK:
-		fmt.Printf("Node %s Updated to %s", node_name, new_name)
+		fmt.Printf("Node %s Updated to %s\n", node_name, new_name)
 	}
 	return nil
 }

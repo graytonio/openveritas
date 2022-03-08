@@ -26,6 +26,6 @@ func delPropCmdRun(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("Property %s Deleted From Node %s", prop_name, node_name)
+	fmt.Printf("Property %s Deleted From Node %s\n", prop_name, node_name)
 	return nil
 }
