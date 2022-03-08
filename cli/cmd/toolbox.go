@@ -112,6 +112,7 @@ func printNodeArray(nodes []api.Node, detailed bool, basic bool) {
 		for _, node := range nodes {
 			fmt.Println(nodeToString(&node, detailed))
 		}
+		return
 	}
 	t := table.NewWriter()
 	t.SetStyle(table.StyleRounded)
