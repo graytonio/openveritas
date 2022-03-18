@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
+
 	"github.com/graytonio/openveritas/cli/api"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +36,11 @@ func getPropCmdRun(cmd *cobra.Command, args []string) error {
 func getAllPropertiesOfNode(node_name string) error {
 	props, err := api.GetAllPropertiesOfNode(config.Host, node_name)
 	if err != nil {
-		return err
+		if err.Code == http.StatusNotFound {
+			fmt.Println(err.Message)
+			return nil
+		}
+		return errors.New(err.Message)
 	}
 
 	printPropArray(props, config.Basic, detailed)
@@ -42,7 +50,11 @@ func getAllPropertiesOfNode(node_name string) error {
 func getNodeProperty(node_name string, prop_name string) error {
 	prop, err := api.GetPropertyOfNodeByName(config.Host, node_name, prop_name)
 	if err != nil {
-		return err
+		if err.Code == http.StatusNotFound {
+			fmt.Println(err.Message)
+			return nil
+		}
+		return errors.New(err.Message)
 	}
 
 	printProp(prop, config.Basic, detailed)

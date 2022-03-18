@@ -3,7 +3,6 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -39,65 +38,65 @@ func appendToHostString(host string, routes ...string) string {
 	return u.String()
 }
 
-func parseJSONBody(resp *http.Response, data interface{}) error {
+func parseJSONBody(resp *http.Response, data interface{}) *Error {
 	body, _ := ioutil.ReadAll(resp.Body)
 	err := json.Unmarshal(body, data)
 	if err != nil {
-		return err
+		return createError(err)
 	}
 	return nil
 }
 
-func apiGetRequest(route string) (*http.Response, error) {
+func apiGetRequest(route string) (*http.Response, *Error) {
 	resp, err := http.Get(route)
 	if err != nil {
-		return nil, err
+		return nil, createError(err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResp := handleError(resp)
-		return nil, errors.New(errResp.Message)
+		return nil, errResp
 	}
 
 	return resp, nil
 }
 
-func apiPutRequest(route string, body []byte) (*http.Response, error) {
+func apiPutRequest(route string, body []byte) (*http.Response, *Error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPut, route, bytes.NewBuffer(body))
 	if err != nil {
-		return nil, err
+		return nil, createError(err)
 	}
 
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, createError(err)
 	}
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		errResp := handleError(resp)
-		return nil, errors.New(errResp.Message)
+		return nil, errResp
 	}
 
 	return resp, nil
 }
 
-func apiDeleteRequest(route string) (*http.Response, error) {
+func apiDeleteRequest(route string) (*http.Response, *Error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodDelete, route, nil)
 	if err != nil {
-		return nil, err
+		return nil, createError(err)
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, createError(err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		errResp := handleError(resp)
-		return nil, errors.New(errResp.Message)
+		return nil, errResp
 	}
 
 	return resp, nil
@@ -107,7 +106,11 @@ func handleError(resp *http.Response) *Error {
 	var errResp Error
 	err := parseJSONBody(resp, &errResp)
 	if err != nil {
-		return &Error{Code: 400, Message: err.Error()}
+		return err
 	}
 	return &errResp
+}
+
+func createError(err error) *Error {
+	return &Error{Code: 500, Message: err.Error()}
 }

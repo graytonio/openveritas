@@ -20,6 +20,7 @@ type Config struct {
 }
 
 var detailed bool
+var node_filter string
 
 var (
 	config Config

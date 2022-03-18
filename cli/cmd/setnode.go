@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -34,7 +35,7 @@ func setNodeCmdRun(cmd *cobra.Command, args []string) error {
 func createNode(node_name string) error {
 	status_code, err := api.PutNode(config.Host, node_name, node_name)
 	if err != nil {
-		return err
+		return errors.New(err.Message)
 	}
 
 	switch status_code {
@@ -49,7 +50,7 @@ func createNode(node_name string) error {
 func updateNode(node_name string, new_name string) error {
 	status_code, err := api.PutNode(config.Host, node_name, new_name)
 	if err != nil {
-		return err
+		return errors.New(err.Message)
 	}
 
 	switch status_code {

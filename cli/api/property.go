@@ -2,7 +2,7 @@ package api
 
 import "encoding/json"
 
-func GetAllPropertiesOfNode(host string, node_name string) ([]Property, error) {
+func GetAllPropertiesOfNode(host string, node_name string) ([]Property, *Error) {
 	route := appendToHostString(host, "/node/", node_name, "/prop")
 	resp, err := apiGetRequest(route)
 	if err != nil {
@@ -19,7 +19,7 @@ func GetAllPropertiesOfNode(host string, node_name string) ([]Property, error) {
 	return props, nil
 }
 
-func GetPropertyOfNodeByName(host string, node_name string, prop_name string) (*Property, error) {
+func GetPropertyOfNodeByName(host string, node_name string, prop_name string) (*Property, *Error) {
 	route := appendToHostString(host, "/node/", node_name, "/prop/", prop_name)
 	resp, err := apiGetRequest(route)
 	if err != nil {
@@ -36,16 +36,33 @@ func GetPropertyOfNodeByName(host string, node_name string, prop_name string) (*
 	return &prop, nil
 }
 
-func PutProp(host string, node_name, prop_name string, prop_value interface{}) (int, error) {
+func QueryPropertyByName(host string, prop_name string) ([]Property, *Error) {
+	route := appendToHostString(host, "/prop/", prop_name)
+	resp, err := apiGetRequest(route)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var props []Property
+	err = parseJSONBody(resp, &props)
+	if err != nil {
+		return nil, err
+	}
+
+	return props, err
+}
+
+func PutProp(host string, node_name, prop_name string, prop_value interface{}) (int, *Error) {
 	route := appendToHostString(host, "/node/", node_name, "/prop/", prop_name)
 	prop := &Property{
 		PropertyName:  prop_name,
 		PropertyValue: prop_value,
 	}
 
-	json, err := json.Marshal(prop)
-	if err != nil {
-		return -1, err
+	json, json_err := json.Marshal(prop)
+	if json_err != nil {
+		return -1, createError(json_err)
 	}
 
 	resp, err := apiPutRequest(route, json)
@@ -56,7 +73,7 @@ func PutProp(host string, node_name, prop_name string, prop_value interface{}) (
 	return resp.StatusCode, nil
 }
 
-func DeleteProp(host string, node_name string, prop_name string) (int, error) {
+func DeleteProp(host string, node_name string, prop_name string) (int, *Error) {
 	route := appendToHostString(host, "/node/", node_name, "/prop/", prop_name)
 	resp, err := apiDeleteRequest(route)
 	if err != nil {

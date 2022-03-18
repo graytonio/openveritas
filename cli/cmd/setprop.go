@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -26,7 +27,7 @@ func setPropRun(cmd *cobra.Command, args []string) error {
 
 	status_code, err := api.PutProp(config.Host, node_name, prop_name, prop_value)
 	if err != nil {
-		return err
+		return errors.New(err.Message)
 	}
 
 	switch status_code {
