@@ -13,7 +13,7 @@ import (
 
 func CreateIndex(collectionRef mgm.Collection, field string, unique bool) bool {
 	mod := mongo.IndexModel{
-		Keys: bson.M{field: 1},
+		Keys:    bson.M{field: 1},
 		Options: options.Index().SetUnique(unique),
 	}
 
@@ -32,7 +32,7 @@ func CreateIndex(collectionRef mgm.Collection, field string, unique bool) bool {
 
 func CreatePairIndex(collectionRef mgm.Collection, field1 string, field2 string, unique bool) bool {
 	mod := mongo.IndexModel{
-		Keys: bson.D{{field1, 1}, {field2, 1}},
+		Keys:    bson.D{{field1, 1}, {field2, 1}},
 		Options: options.Index().SetUnique(unique),
 	}
 

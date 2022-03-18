@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
+	"net/http"
+
 	"github.com/graytonio/openveritas/cli/api"
 	"github.com/spf13/cobra"
 )
@@ -30,7 +34,11 @@ func getNodeCmdRun(cmd *cobra.Command, args []string) error {
 func getNodeList() error {
 	nodes, err := api.GetAllNodes(config.Host)
 	if err != nil {
-		return err
+		if err.Code == http.StatusNotFound {
+			fmt.Println(err.Message)
+			return nil
+		}
+		return errors.New(err.Message)
 	}
 
 	printNodeArray(nodes, detailed, config.Basic)
@@ -40,7 +48,11 @@ func getNodeList() error {
 func getNodeDetails(node_name string) error {
 	node, err := api.GetNodeByName(config.Host, node_name)
 	if err != nil {
-		return err
+		if err.Code == http.StatusNotFound {
+			fmt.Println(err.Message)
+			return nil
+		}
+		return errors.New(err.Message)
 	}
 
 	printNode(node, detailed, config.Basic)

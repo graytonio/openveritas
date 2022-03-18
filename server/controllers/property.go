@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"log"
+
 	"github.com/kamva/mgm/v3"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -45,6 +47,26 @@ func GetNodePropertyByName(node *Node, prop_name string) (*Property, error) {
 	}
 
 	return property, nil
+}
+
+func QueryPropertyNames(query_string string) ([]Property, error) {
+	properties := []Property{}
+	PropertyCollection := mgm.Coll(&Property{})
+
+	// searchStage := bson.D{{"$search", bson.D{{"wildcard", bson.D{{"path", "title"}, {"query", query_string}}}}}}
+	// searchStage := bson.D{{"prop_name", primitive.Regex{Pattern: query_string, Options: "i"}}}
+
+	searchStage := bson.M{"prop_name": bson.M{"$regex": primitive.Regex{Pattern: query_string, Options: "i"}}}
+
+	log.Println(searchStage)
+
+	err := PropertyCollection.SimpleFind(&properties, searchStage)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return properties, nil
 }
 
 func CreateProperty(prop *Property) error {

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/graytonio/openveritas/cli/api"
@@ -23,7 +24,7 @@ func delPropCmdRun(cmd *cobra.Command, args []string) error {
 	prop_name := args[1]
 	_, err := api.DeleteProp(config.Host, node_name, prop_name)
 	if err != nil {
-		return err
+		return errors.New(err.Message)
 	}
 
 	fmt.Printf("Property %s Deleted From Node %s\n", prop_name, node_name)
